@@ -49,10 +49,20 @@ export function useStreamSubscription(streamId: string | undefined) {
           method: 'suix_subscribeEvent',
           params: [
             {
-              MoveEventField: {
-                path: '/stream_id',
-                value: streamId,
-              },
+              And: [
+                {
+                  MoveEventModule: {
+                    package: PIPER_PACKAGE_ID,
+                    module: 'events',
+                  },
+                },
+                {
+                  MoveEventField: {
+                    path: '/stream_id',
+                    value: streamId,
+                  },
+                },
+              ],
             },
           ],
         }),

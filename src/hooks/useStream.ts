@@ -51,8 +51,8 @@ export function useStream(streamId: string | undefined) {
         sender: String(fields.sender ?? ''),
         coinType: obj.data.type?.match(/<(.+)>/)?.[1] ?? '',
         createdAt: Number(fields.created_at ?? 0),
-        lastTick: Number(fields.last_tick ?? 0),
-        isRevoked: Boolean(fields.is_revoked ?? false),
+        lastTick: Number(fields.last_tick_at ?? 0),
+        isRevoked: !(Boolean(fields.is_active ?? true)),
         splits: ((fields.splits as Array<Record<string, unknown>>) ?? []).map(
           (s) => ({
             recipient: String(s.recipient ?? ''),

@@ -1,22 +1,110 @@
+import { useMemo } from 'react';
 import { motion } from 'framer-motion';
 import { pageVariants } from '@/lib/motion';
+import { StreamCard } from '@/components/stream/StreamCard';
+import { useStreamsByEvent } from '@/hooks/useStreamsByEvent';
+import { useIncomingStreams } from '@/hooks/useIncomingStreams';
+import { useMultipleStreams } from '@/hooks/useMultipleStreams';
 
 export default function DashboardPage() {
+  const { data: sentStreamsEvent, isLoading: isLoadingSent } = useStreamsByEvent();
+  const { data: incomingStreamsEvent, isLoading: isLoadingIncoming } = useIncomingStreams();
+
+  // Extract all IDs
+  const allStreamIds = useMemo(() => {
+    const sent = sentStreamsEvent?.map((s) => s.streamId) || [];
+    const incoming = incomingStreamsEvent?.map((s) => s.streamId) || [];
+    return [...new Set([...sent, ...incoming])];
+  }, [sentStreamsEvent, incomingStreamsEvent]);
+
+  // Fetch live stream objects
+  const { data: liveStreams, isLoading: isLoadingLive } = useMultipleStreams(allStreamIds);
+
+  // Filter to active streams
+  const activeSent = useMemo(() => {
+    if (!sentStreamsEvent || !liveStreams) {
+      return [];
+    }
+    return sentStreamsEvent.filter((event) => {
+      const live = liveStreams[event.streamId];
+      if (!live) {
+        return false;
+      }
+      return !live.isRevoked && live.balance > 0n;
+    });
+  }, [sentStreamsEvent, liveStreams]);
+
+  const activeIncoming = useMemo(() => {
+    if (!incomingStreamsEvent || !liveStreams) return [];
+    return incomingStreamsEvent.filter((event) => {
+      const live = liveStreams[event.streamId];
+      if (!live) return false;
+      return !live.isRevoked && live.balance > 0n;
+    });
+  }, [incomingStreamsEvent, liveStreams]);
+
+  const isLoading = isLoadingSent || isLoadingIncoming || isLoadingLive;
+
   return (
-    <motion.div key="dashboard" variants={pageVariants} initial="initial" animate="animate" exit="exit" className="space-y-6">
+    <motion.div key="dashboard" variants={pageVariants} initial="initial" animate="animate" exit="exit" className="space-y-8">
       <header>
         <h1 className="text-3xl font-bold text-black tracking-tight">Dashboard</h1>
         <p className="text-slate-500 mt-1">Overview of your money streams.</p>
       </header>
       
-      {/* Example Fintech Card */}
-      <div className="surface-card p-6 max-w-sm">
-        <p className="text-sm font-medium text-slate-500 uppercase tracking-wider mb-2">Total Value Locked</p>
-        <div className="flex items-baseline gap-2">
-          <span className="text-4xl font-extrabold tracking-tight text-black">$0.00</span>
-          <span className="text-sm font-semibold text-emerald-500">+0.00%</span>
-        </div>
-      </div>
+      <section>
+        <h2 className="text-sm font-bold text-slate-400 uppercase tracking-wider mb-4">Outgoing Streams</h2>
+        {isLoading ? (
+          <div className="text-slate-500 text-sm">Loading outgoing streams...</div>
+        ) : activeSent.length === 0 ? (
+          <div className="bg-slate-50 rounded-2xl p-8 text-center border border-slate-100 md:col-span-2">
+            <p className="text-slate-500 text-sm font-medium">No active outgoing streams.</p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {activeSent.map((stream) => (
+              <StreamCard
+                key={stream.streamId}
+                id={stream.streamId}
+                mode={stream.flowRate > 0n ? 'continuous' : 'onDemand'}
+                coin={stream.coinType.includes('USDC') ? 'USDC' : 'SUI'}
+                status="active"
+                counterpartyAddress={stream.recipient}
+                isIncoming={false}
+                totalAmount={stream.initialBalance}
+                currentBalance={liveStreams?.[stream.streamId]?.balance ?? stream.initialBalance}
+              />
+            ))}
+          </div>
+        )}
+      </section>
+      
+      <section>
+        <h2 className="text-sm font-bold text-slate-400 uppercase tracking-wider mb-4">Incoming Streams</h2>
+        {isLoading ? (
+          <div className="text-slate-500 text-sm">Loading incoming streams...</div>
+        ) : activeIncoming.length === 0 ? (
+          <div className="bg-slate-50 rounded-2xl p-8 text-center border border-slate-100 md:col-span-2">
+            <p className="text-slate-500 text-sm font-medium">No active incoming streams.</p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {activeIncoming.map((stream) => (
+              <StreamCard
+                key={stream.streamId}
+                id={stream.streamId}
+                mode={stream.flowRate > 0n ? 'continuous' : 'onDemand'}
+                coin={stream.coinType.includes('USDC') ? 'USDC' : 'SUI'}
+                status="active"
+                counterpartyAddress={stream.sender}
+                isIncoming={true}
+                totalAmount={stream.initialBalance}
+                currentBalance={liveStreams?.[stream.streamId]?.balance ?? stream.initialBalance}
+              />
+            ))}
+          </div>
+        )}
+      </section>
     </motion.div>
   );
 }
