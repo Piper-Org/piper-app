@@ -40,7 +40,7 @@ interface WizardStore {
 
 const defaultDraft: WizardDraft = {
   mode: 'continuous',
-  coinSymbol: 'USDC',
+  coinSymbol: 'SUI',
   amount: '',
   flowRatePerSec: '',
   durationSecs: '',

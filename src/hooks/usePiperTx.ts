@@ -33,20 +33,25 @@ export function usePiperTx(options: UsePiperTxOptions = {}) {
       setError(null);
 
       try {
-        const result = await dAppKit.signAndExecuteTransaction({ transaction: tx });
+        const result = await dAppKit.signAndExecuteTransaction({ transaction: tx }) as any;
 
-        // Check for failure
+        // Check for failure in some formats
         if (result.$kind === 'FailedTransaction') {
           throw new Error(
             `Transaction failed: ${result.FailedTransaction?.error ?? 'unknown error'}`,
           );
         }
 
-        const digest = result.Transaction?.digest;
-        if (!digest) throw new Error('No transaction digest returned');
+        // Safely extract digest
+        const digest = result?.digest || result?.Transaction?.digest;
+        if (!digest) throw new Error(`No transaction digest returned: ${JSON.stringify(result)}`);
 
-        // Wait for fullnode indexing before invalidating cache
-        await client.waitForTransaction({ digest });
+        // Wait for fullnode indexing before invalidating cache (with timeout to prevent hanging)
+        try {
+          await client.waitForTransaction({ digest, timeout: 5000 });
+        } catch (waitErr) {
+          console.warn('waitForTransaction timed out or failed, but tx may have succeeded:', waitErr);
+        }
 
         // Invalidate relevant caches
         if (options.streamId) {
