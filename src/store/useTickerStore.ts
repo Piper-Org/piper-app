@@ -25,7 +25,7 @@ interface TickerStore {
   sync: (streamId: string, entry: TickerEntry) => void;
   remove: (streamId: string) => void;
   /** Compute the current optimistic balance for a stream */
-  getOptimistic: (streamId: string) => bigint | null;
+  getOptimistic: (streamId: string, mode?: 'remaining' | 'earned') => bigint | null;
 }
 
 export const useTickerStore = create<TickerStore>((set, get) => ({
@@ -40,11 +40,16 @@ export const useTickerStore = create<TickerStore>((set, get) => ({
       return { tickers: rest };
     }),
 
-  getOptimistic: (streamId) => {
+  getOptimistic: (streamId, mode = 'remaining') => {
     const entry = get().tickers[streamId];
     if (!entry) return null;
     const elapsedSecs = BigInt(Math.floor((Date.now() - entry.lastSyncAt) / 1000));
     const earned = entry.flowRatePerSec * elapsedSecs;
+    
+    if (mode === 'earned') {
+      return earned;
+    }
+    
     // Balance decreases for sender; clamp at zero
     return entry.balance > earned ? entry.balance - earned : 0n;
   },
