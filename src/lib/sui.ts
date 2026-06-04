@@ -7,7 +7,7 @@
  */
 
 import { createDAppKit } from '@mysten/dapp-kit-react';
-import { SuiGrpcClient } from '@mysten/sui/grpc';
+import { SuiJsonRpcClient, getJsonRpcFullnodeUrl } from '@mysten/sui/jsonRpc';
 import { Piper } from '@usepiper/sdk';
 import { PIPER_PACKAGE_ID, SUI_RPC_URL } from './constants';
 
@@ -18,9 +18,9 @@ export const dAppKit = createDAppKit({
   createClient: (network) => {
     const url =
       network === 'mainnet'
-        ? 'https://fullnode.mainnet.sui.io:443'
+        ? getJsonRpcFullnodeUrl('mainnet')
         : SUI_RPC_URL;
-    return new SuiGrpcClient({ url });
+    return new SuiJsonRpcClient({ url });
   },
   defaultNetwork: 'testnet',
 });
