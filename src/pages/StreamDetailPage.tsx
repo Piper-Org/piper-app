@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { pageVariants } from '@/lib/motion';
 import { useParams, useRouter } from '@tanstack/react-router';
@@ -10,6 +11,7 @@ import { ArrowLeft } from 'lucide-react';
 import { usePiperTx } from '@/hooks/usePiperTx';
 import { Transaction } from '@mysten/sui/transactions';
 import { Piper } from '@usepiper/sdk';
+import { PayDialog } from '@/components/stream/PayDialog';
 
 export default function StreamDetailPage() {
   const { id } = useParams({ from: '/stream/$id' });
@@ -17,6 +19,7 @@ export default function StreamDetailPage() {
   const address = useActiveAddress();
   const { data: stream, isLoading } = useStream(id);
   const { execute, isPending } = usePiperTx({ streamId: id });
+  const [isPayDialogOpen, setIsPayDialogOpen] = useState(false);
 
   if (isLoading) {
     return <div className="p-8 text-center text-slate-500">Loading stream details...</div>;
@@ -29,6 +32,8 @@ export default function StreamDetailPage() {
   const activeAddressStr = address?.toLowerCase();
   const isIncoming = activeAddressStr === stream.recipient.toLowerCase();
   const isSender = activeAddressStr === stream.sender.toLowerCase();
+  const isAuthorizedSpender = activeAddressStr === stream.authorizedSpender?.toLowerCase();
+  const isContinuous = stream.flowRate > 0n;
   const coin = stream.coinType.includes('USDC') ? 'USDC' : 'SUI';
   const coinDef = SUPPORTED_COINS[coin];
 
@@ -134,14 +139,36 @@ export default function StreamDetailPage() {
             {isPending ? 'Revoking...' : 'Revoke'}
           </button>
         )}
-        <button 
-          disabled={stream.balance === 0n || isPending}
-          onClick={handleTick}
-          className="flex-1 bg-black hover:bg-slate-800 text-white font-bold py-4 rounded-xl transition-colors disabled:opacity-50 disabled:bg-slate-300 text-lg shadow-md"
-        >
-          {isPending ? 'Syncing...' : 'Tick (Sync)'}
-        </button>
+        
+        {isContinuous && (
+          <button 
+            disabled={stream.balance === 0n || isPending}
+            onClick={handleTick}
+            className="flex-1 bg-black hover:bg-slate-800 text-white font-bold py-4 rounded-xl transition-colors disabled:opacity-50 disabled:bg-slate-300 text-lg shadow-md"
+          >
+            {isPending ? 'Syncing...' : 'Tick (Sync)'}
+          </button>
+        )}
+
+        {!isContinuous && isAuthorizedSpender && status === 'active' && (
+          <button 
+            disabled={stream.balance === 0n}
+            onClick={() => setIsPayDialogOpen(true)}
+            className="flex-1 bg-black hover:bg-slate-800 text-white font-bold py-4 rounded-xl transition-colors disabled:opacity-50 disabled:bg-slate-300 text-lg shadow-md"
+          >
+            Withdraw
+          </button>
+        )}
       </div>
+
+      <PayDialog 
+        open={isPayDialogOpen}
+        onOpenChange={setIsPayDialogOpen}
+        streamId={id}
+        coinType={coinDef.type}
+        coinSymbol={coinDef.symbol}
+        decimals={coinDef.decimals}
+      />
     </motion.div>
   );
 }
