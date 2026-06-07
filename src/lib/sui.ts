@@ -20,7 +20,7 @@ export const dAppKit = createDAppKit({
       network === 'mainnet'
         ? getJsonRpcFullnodeUrl('mainnet')
         : SUI_RPC_URL;
-    return new SuiJsonRpcClient({ url });
+    return new SuiJsonRpcClient({ url, network: network as any });
   },
   defaultNetwork: 'testnet',
 });

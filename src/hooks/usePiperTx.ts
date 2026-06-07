@@ -33,7 +33,9 @@ export function usePiperTx(options: UsePiperTxOptions = {}) {
       setError(null);
 
       try {
-        const result = await dAppKit.signAndExecuteTransaction({ transaction: tx }) as any;
+        const result = await dAppKit.signAndExecuteTransaction({ 
+          transaction: tx
+        }) as any;
 
         // Check for failure in some formats
         if (result.$kind === 'FailedTransaction') {
