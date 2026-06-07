@@ -12,6 +12,7 @@ import { useQueryClient } from '@tanstack/react-query';
 import { useDAppKit, useCurrentClient } from '@mysten/dapp-kit-react';
 import type { Transaction } from '@mysten/sui/transactions';
 import { streamKeys } from '@/lib/queryKeys';
+import { txToast } from '@/components/common/TxToast';
 
 interface UsePiperTxOptions {
   /** Optional: stream ID to invalidate on success */
@@ -31,6 +32,7 @@ export function usePiperTx(options: UsePiperTxOptions = {}) {
     async (tx: Transaction) => {
       setIsPending(true);
       setError(null);
+      const toastId = txToast.loading('Executing transaction...', 'Please approve the request in your wallet.');
 
       try {
         const result = await dAppKit.signAndExecuteTransaction({ 
@@ -67,11 +69,18 @@ export function usePiperTx(options: UsePiperTxOptions = {}) {
         // Always invalidate all streams (balance/status may have changed)
         await queryClient.invalidateQueries({ queryKey: streamKeys.all() });
 
+        const networkStr = client.network === 'testnet' ? 'testnet' : 'mainnet';
+        const explorerUrl = `https://suiscan.xyz/${networkStr}/tx/${digest}`;
+        txToast.success('Transaction Successful!', 'Your action has been confirmed on the Sui blockchain.', explorerUrl);
+        txToast.dismiss(toastId as string);
+
         options.onSuccess?.(digest);
         return digest;
       } catch (err) {
         const e = err instanceof Error ? err : new Error(String(err));
         setError(e);
+        txToast.error('Transaction Failed', e.message);
+        txToast.dismiss(toastId as string);
         options.onError?.(e);
         throw e;
       } finally {

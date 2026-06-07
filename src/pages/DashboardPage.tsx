@@ -1,5 +1,6 @@
 import { useMemo } from 'react';
 import { motion } from 'framer-motion';
+import { LoadingSpinner } from '@/components/common/LoadingSpinner';
 import { pageVariants } from '@/lib/motion';
 import { StreamCard } from '@/components/stream/StreamCard';
 import { useStreamsByEvent } from '@/hooks/useStreamsByEvent';
@@ -55,7 +56,7 @@ export default function DashboardPage() {
       <section>
         <h2 className="text-sm font-bold text-slate-400 uppercase tracking-wider mb-4">Outgoing Streams</h2>
         {isLoading ? (
-          <div className="text-slate-500 text-sm">Loading outgoing streams...</div>
+          <div className="flex justify-center py-12"><LoadingSpinner size={32} /></div>
         ) : activeSent.length === 0 ? (
           <div className="bg-slate-50 rounded-2xl p-8 text-center border border-slate-100 md:col-span-2">
             <p className="text-slate-500 text-sm font-medium">No active outgoing streams.</p>
@@ -82,7 +83,7 @@ export default function DashboardPage() {
       <section>
         <h2 className="text-sm font-bold text-slate-400 uppercase tracking-wider mb-4">Incoming Streams</h2>
         {isLoading ? (
-          <div className="text-slate-500 text-sm">Loading incoming streams...</div>
+          <div className="flex justify-center py-12"><LoadingSpinner size={32} /></div>
         ) : activeIncoming.length === 0 ? (
           <div className="bg-slate-50 rounded-2xl p-8 text-center border border-slate-100 md:col-span-2">
             <p className="text-slate-500 text-sm font-medium">No active incoming streams.</p>

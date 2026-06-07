@@ -1,5 +1,7 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
+import { LoadingSpinner } from '@/components/common/LoadingSpinner';
+import { ErrorCard } from '@/components/common/ErrorCard';
 import { pageVariants } from '@/lib/motion';
 import { useParams, useRouter } from '@tanstack/react-router';
 import { useStream } from '@/hooks/useStream';
@@ -22,11 +24,15 @@ export default function StreamDetailPage() {
   const [isPayDialogOpen, setIsPayDialogOpen] = useState(false);
 
   if (isLoading) {
-    return <div className="p-8 text-center text-slate-500">Loading stream details...</div>;
+    return <div className="flex justify-center py-20"><LoadingSpinner size={40} /></div>;
   }
 
   if (!stream) {
-    return <div className="p-8 text-center text-rose-500">Stream not found.</div>;
+    return (
+      <div className="p-4">
+        <ErrorCard title="Stream not found" message="The requested stream could not be found on the Sui blockchain. It may have been destroyed or the ID is invalid." />
+      </div>
+    );
   }
 
   const activeAddressStr = address?.toLowerCase();

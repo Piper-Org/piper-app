@@ -1,5 +1,6 @@
 import { useMemo } from 'react';
 import { motion } from 'framer-motion';
+import { LoadingSpinner } from '@/components/common/LoadingSpinner';
 import { pageVariants } from '@/lib/motion';
 import { useStreamsByEvent } from '@/hooks/useStreamsByEvent';
 import { useIncomingStreams } from '@/hooks/useIncomingStreams';
@@ -25,7 +26,7 @@ export default function HistoryPage() {
       </header>
 
       {isLoading ? (
-        <div className="text-slate-500 text-sm">Loading history...</div>
+        <div className="flex justify-center py-12"><LoadingSpinner size={32} /></div>
       ) : allStreams.length === 0 ? (
         <div className="bg-slate-50 rounded-2xl p-8 text-center border border-slate-100">
           <p className="text-slate-500 text-sm font-medium">No streams found in your history.</p>
