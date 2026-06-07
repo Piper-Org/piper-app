@@ -1,6 +1,6 @@
 import { motion } from 'framer-motion';
 import { pageVariants } from '@/lib/motion';
-import { useParams, useNavigate } from '@tanstack/react-router';
+import { useParams, useRouter } from '@tanstack/react-router';
 import { useStream } from '@/hooks/useStream';
 import { useActiveAddress } from '@/hooks/useActiveAddress';
 import { StreamTicker } from '@/components/stream/StreamTicker';
@@ -13,7 +13,7 @@ import { Piper } from '@usepiper/sdk';
 
 export default function StreamDetailPage() {
   const { id } = useParams({ from: '/stream/$id' });
-  const navigate = useNavigate();
+  const router = useRouter();
   const address = useActiveAddress();
   const { data: stream, isLoading } = useStream(id);
   const { execute, isPending } = usePiperTx({ streamId: id });
@@ -72,7 +72,7 @@ export default function StreamDetailPage() {
     <motion.div key="stream-detail" variants={pageVariants} initial="initial" animate="animate" exit="exit" className="space-y-6 pb-20">
       <div className="flex items-center gap-4 mb-6">
         <button 
-          onClick={() => navigate({ to: '..' })}
+          onClick={() => router.history.back()}
           className="w-10 h-10 rounded-full bg-white border border-slate-200 flex items-center justify-center text-slate-600 hover:bg-slate-50 transition-colors shadow-subtle"
         >
           <ArrowLeft className="w-5 h-5" />
