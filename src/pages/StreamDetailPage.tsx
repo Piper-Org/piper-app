@@ -7,12 +7,16 @@ import { StreamTicker } from '@/components/stream/StreamTicker';
 import { StreamStatusBadge } from '@/components/stream/StreamStatusBadge';
 import { SUPPORTED_COINS } from '@/lib/constants';
 import { ArrowLeft } from 'lucide-react';
+import { usePiperTx } from '@/hooks/usePiperTx';
+import { Transaction } from '@mysten/sui/transactions';
+import { Piper } from '@usepiper/sdk';
 
 export default function StreamDetailPage() {
   const { id } = useParams({ from: '/stream/$id' });
   const navigate = useNavigate();
   const address = useActiveAddress();
   const { data: stream, isLoading } = useStream(id);
+  const { execute, isPending } = usePiperTx({ streamId: id });
 
   if (isLoading) {
     return <div className="p-8 text-center text-slate-500">Loading stream details...</div>;
@@ -28,9 +32,41 @@ export default function StreamDetailPage() {
   const coin = stream.coinType.includes('USDC') ? 'USDC' : 'SUI';
   const coinDef = SUPPORTED_COINS[coin];
 
-  let status: 'active' | 'completed' | 'revoked' = 'active';
-  if (stream.isRevoked) status = 'revoked';
-  else if (stream.balance === 0n) status = 'completed';
+  let status: 'active' | 'inactive' = 'active';
+  const unlocked = Math.floor((Date.now() - Number(stream.lastTick)) / 1000) * Number(stream.flowRate);
+  
+  // The Move contract sets is_active to false when a stream is fully exhausted OR revoked.
+  // Both states result in a balance of 0.
+  if (stream.isRevoked || stream.balance === 0n || (stream.flowRate > 0n && BigInt(unlocked) >= stream.balance)) {
+    status = 'inactive';
+  }
+
+  const handleTick = async () => {
+    try {
+      const tx = new Transaction();
+      Piper.tick(tx, {
+        streamId: id,
+        coinType: coinDef.type,
+      });
+      await execute(tx);
+    } catch (err) {
+      console.error('Failed to tick stream:', err);
+    }
+  };
+
+  const handleRevoke = async () => {
+    try {
+      const tx = new Transaction();
+      const coin = Piper.revoke(tx, {
+        streamId: id,
+        coinType: coinDef.type,
+      });
+      tx.transferObjects([coin], address as string);
+      await execute(tx);
+    } catch (err) {
+      console.error('Failed to revoke stream:', err);
+    }
+  };
 
   return (
     <motion.div key="stream-detail" variants={pageVariants} initial="initial" animate="animate" exit="exit" className="space-y-6 pb-20">
@@ -88,15 +124,22 @@ export default function StreamDetailPage() {
         </div>
       </div>
 
-      {/* Placeholder for StreamActions (Phase 7) */}
-      <div className="fixed bottom-[80px] left-0 right-0 p-4 bg-white/80 backdrop-blur-md border-t border-slate-100 flex gap-2">
+      <div className="flex gap-4">
         {isSender && status === 'active' && (
-          <button className="flex-1 bg-rose-50 hover:bg-rose-100 text-rose-600 font-bold py-3 rounded-xl transition-colors">
-            Revoke
+          <button 
+            disabled={isPending}
+            onClick={handleRevoke}
+            className="flex-1 bg-rose-50 hover:bg-rose-100 text-rose-600 font-bold py-4 rounded-xl transition-colors disabled:opacity-50 text-lg"
+          >
+            {isPending ? 'Revoking...' : 'Revoke'}
           </button>
         )}
-        <button className="flex-1 bg-black hover:bg-slate-800 text-white font-bold py-3 rounded-xl transition-colors">
-          Tick (Sync)
+        <button 
+          disabled={stream.balance === 0n || isPending}
+          onClick={handleTick}
+          className="flex-1 bg-black hover:bg-slate-800 text-white font-bold py-4 rounded-xl transition-colors disabled:opacity-50 disabled:bg-slate-300 text-lg shadow-md"
+        >
+          {isPending ? 'Syncing...' : 'Tick (Sync)'}
         </button>
       </div>
     </motion.div>

@@ -28,10 +28,10 @@ export function HistoryStreamRow({ streamId, isIncoming, createdAt }: HistoryStr
   const coin = stream.coinType.includes('USDC') ? 'USDC' : 'SUI';
   const coinDef = SUPPORTED_COINS[coin];
   
-  // Determine actual status
-  let status: 'active' | 'completed' | 'revoked' = 'active';
-  if (stream.isRevoked) status = 'revoked';
-  else if (stream.balance === 0n) status = 'completed';
+  let status: 'active' | 'inactive' = 'active';
+  if (stream.isRevoked || stream.balance === 0n) {
+    status = 'inactive';
+  }
 
   const counterparty = isIncoming ? stream.sender : stream.recipient;
   const dateStr = new Date(createdAt).toLocaleDateString(undefined, { 

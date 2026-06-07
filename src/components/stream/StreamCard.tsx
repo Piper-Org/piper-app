@@ -9,7 +9,7 @@ interface StreamCardProps {
   id: string;
   mode: StreamMode;
   coin: CoinSymbol;
-  status: 'active' | 'completed' | 'revoked';
+  status: 'active' | 'inactive';
   counterpartyAddress: string;
   isIncoming: boolean;
   totalAmount: bigint;
