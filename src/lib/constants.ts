@@ -8,7 +8,7 @@
 
 export const PIPER_PACKAGE_ID =
   import.meta.env.VITE_PIPER_PACKAGE_ID ??
-  '0x1250e8c243a2c6bfb2074d73e5dcb5e92302cd21fde5d194c9d4711451de369f';
+  '0x8f33eecb14d7990f19374499622f8ac4f9d493ace3368209f3969ccc149d3da7';
 
 export const NETWORK = (import.meta.env.VITE_NETWORK ?? 'testnet') as 'testnet' | 'mainnet';
 

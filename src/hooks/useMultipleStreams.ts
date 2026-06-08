@@ -43,6 +43,7 @@ export function useMultipleStreams(streamIds: string[]) {
           createdAt: Number(fields.created_at ?? 0),
           lastTick: Number(fields.last_tick_at ?? 0),
           isRevoked: !(Boolean(fields.is_active ?? true)),
+          authorizedSpender: fields.authorized_spender ? String(fields.authorized_spender) : null,
           splits: ((fields.splits as Array<Record<string, unknown>>) ?? []).map(
             (s) => ({
               recipient: String(s.recipient ?? ''),
