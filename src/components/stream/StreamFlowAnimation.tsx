@@ -14,8 +14,12 @@ export function StreamFlowAnimation({ flowRate, isIncoming, progressPercent, cla
   const clampedProgress = Math.min(100, Math.max(0, progressPercent));
   const isCompleted = clampedProgress >= 100;
 
-  // Direction: if incoming, water flows from right (100%) to left (-100%)
-  const waterDirection = isIncoming ? ["100%", "-100%"] : ["-100%", "100%"];
+  // If incoming, the pipe fills UP (0 to 100%).
+  // If outgoing, the pipe drains DOWN (100% to 0%).
+  const displayWidth = isIncoming ? clampedProgress : 100 - clampedProgress;
+
+  // Direction: water flows from left (-100%) to right (100%) for both now
+  const waterDirection = ["-100%", "100%"];
 
   return (
     <div className={cn("relative w-full h-4 rounded-full bg-slate-100/50 shadow-[inset_0_2px_6px_rgba(0,0,0,0.1)] overflow-hidden border border-slate-200/60 backdrop-blur-sm", className)}>
@@ -24,9 +28,8 @@ export function StreamFlowAnimation({ flowRate, isIncoming, progressPercent, cla
       <div 
         className="absolute inset-y-0 overflow-hidden transition-all duration-1000 ease-out"
         style={{ 
-          width: `${clampedProgress}%`,
-          // If incoming, it fills from the right side. If outgoing, from the left.
-          ...(isIncoming ? { right: 0 } : { left: 0 })
+          width: `${displayWidth}%`,
+          ...(isIncoming ? { left: 0 } : { right: 0 })
         }}
       >
         {/* Liquid background tint */}
