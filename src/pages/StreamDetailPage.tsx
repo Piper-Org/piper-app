@@ -95,6 +95,8 @@ export default function StreamDetailPage() {
     }
   };
 
+  const tickLabel = isSender || isIncoming ? 'Resolve' : 'Sync';
+
   return (
     <motion.div key="stream-detail" variants={pageVariants} initial="initial" animate="animate" exit="exit" className="space-y-6 pb-20">
       <div className="flex items-center gap-4 mb-6">
@@ -169,7 +171,7 @@ export default function StreamDetailPage() {
             onClick={handleRevoke}
             className="flex-1 bg-rose-50 hover:bg-rose-100 text-rose-600 font-bold py-4 rounded-xl transition-colors disabled:opacity-50 disabled:bg-slate-100 disabled:text-slate-400 text-lg"
           >
-            {isPending ? 'Revoking...' : (isFullyUnlocked ? 'Fully Unlocked' : 'Revoke')}
+            {isPending ? 'Revoking...' : (isFullyUnlocked ? 'Completed' : 'Revoke')}
           </button>
         )}
         
@@ -179,7 +181,7 @@ export default function StreamDetailPage() {
             onClick={handleTick}
             className="flex-1 bg-black hover:bg-slate-800 text-white font-bold py-4 rounded-xl transition-colors disabled:opacity-50 disabled:bg-slate-300 text-lg shadow-md"
           >
-            {isPending ? 'Syncing...' : 'Tick (Sync)'}
+            {isPending ? 'Processing...' : tickLabel}
           </button>
         )}
 

@@ -54,34 +54,6 @@ export default function DashboardPage() {
       </header>
       
       <section>
-        <h2 className="text-sm font-bold text-slate-400 uppercase tracking-wider mb-4">Outgoing Streams</h2>
-        {isLoading ? (
-          <div className="flex justify-center py-12"><LoadingSpinner size={32} /></div>
-        ) : activeSent.length === 0 ? (
-          <div className="bg-slate-50 rounded-2xl p-8 text-center border border-slate-100 md:col-span-2">
-            <p className="text-slate-500 text-sm font-medium">No active outgoing streams.</p>
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {activeSent.map((stream) => (
-              <StreamCard
-                key={stream.streamId}
-                id={stream.streamId}
-                mode={stream.flowRate > 0n ? 'continuous' : 'onDemand'}
-                coin={stream.coinType.includes('USDC') ? 'USDC' : 'SUI'}
-                status="active"
-                counterpartyAddress={stream.recipient}
-                isIncoming={false}
-                totalAmount={stream.initialBalance}
-                currentBalance={liveStreams?.[stream.streamId]?.balance ?? stream.initialBalance}
-                flowRate={stream.flowRate}
-              />
-            ))}
-          </div>
-        )}
-      </section>
-      
-      <section>
         <h2 className="text-sm font-bold text-slate-400 uppercase tracking-wider mb-4">Incoming Streams</h2>
         {isLoading ? (
           <div className="flex justify-center py-12"><LoadingSpinner size={32} /></div>
@@ -100,6 +72,34 @@ export default function DashboardPage() {
                 status="active"
                 counterpartyAddress={stream.sender}
                 isIncoming={true}
+                totalAmount={stream.initialBalance}
+                currentBalance={liveStreams?.[stream.streamId]?.balance ?? stream.initialBalance}
+                flowRate={stream.flowRate}
+              />
+            ))}
+          </div>
+        )}
+      </section>
+
+      <section>
+        <h2 className="text-sm font-bold text-slate-400 uppercase tracking-wider mb-4">Outgoing Streams</h2>
+        {isLoading ? (
+          <div className="flex justify-center py-12"><LoadingSpinner size={32} /></div>
+        ) : activeSent.length === 0 ? (
+          <div className="bg-slate-50 rounded-2xl p-8 text-center border border-slate-100 md:col-span-2">
+            <p className="text-slate-500 text-sm font-medium">No active outgoing streams.</p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {activeSent.map((stream) => (
+              <StreamCard
+                key={stream.streamId}
+                id={stream.streamId}
+                mode={stream.flowRate > 0n ? 'continuous' : 'onDemand'}
+                coin={stream.coinType.includes('USDC') ? 'USDC' : 'SUI'}
+                status="active"
+                counterpartyAddress={stream.recipient}
+                isIncoming={false}
                 totalAmount={stream.initialBalance}
                 currentBalance={liveStreams?.[stream.streamId]?.balance ?? stream.initialBalance}
                 flowRate={stream.flowRate}
