@@ -6,6 +6,7 @@ import { useQuery } from '@tanstack/react-query';
 import { useCurrentClient } from '@mysten/dapp-kit-react';
 import { POLL_INTERVAL_MS } from '@/lib/constants';
 import { streamKeys } from '@/lib/queryKeys';
+import { useTickerStore } from '@/store/useTickerStore';
 
 export interface StreamDetail {
   id: string;
@@ -44,7 +45,7 @@ export function useStream(streamId: string | undefined) {
 
       const fields = obj.data.content.fields as Record<string, unknown>;
 
-      return {
+      const result = {
         id: streamId,
         balance: BigInt((fields.balance as string | number | bigint) ?? '0'),
         flowRate: BigInt((fields.flow_rate as string | number | bigint) ?? '0'),
@@ -62,6 +63,15 @@ export function useStream(streamId: string | undefined) {
           }),
         ),
       };
+
+      // Sync the ticker store for real-time optimistic updates
+      useTickerStore.getState().sync(streamId, {
+        balance: result.balance,
+        flowRatePerSec: result.flowRate,
+        lastSyncAt: result.lastTick,
+      });
+
+      return result;
     },
   });
 }

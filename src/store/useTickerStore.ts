@@ -43,14 +43,25 @@ export const useTickerStore = create<TickerStore>((set, get) => ({
   getOptimistic: (streamId, mode = 'remaining') => {
     const entry = get().tickers[streamId];
     if (!entry) return null;
+
+    // If flow rate is 0 (Pay-Per-Use), it doesn't tick.
+    if (entry.flowRatePerSec === 0n) {
+      return mode === 'remaining' ? entry.balance : 0n;
+    }
+
     const elapsedSecs = BigInt(Math.floor((Date.now() - entry.lastSyncAt) / 1000));
-    const earned = entry.flowRatePerSec * elapsedSecs;
+    let earned = entry.flowRatePerSec * elapsedSecs;
     
+    // The amount earned since last sync cannot exceed the total remaining balance in the stream!
+    if (earned > entry.balance) {
+      earned = entry.balance;
+    }
+
     if (mode === 'earned') {
       return earned;
     }
     
-    // Balance decreases for sender; clamp at zero
-    return entry.balance > earned ? entry.balance - earned : 0n;
+    // Remaining balance decreases by the earned amount
+    return entry.balance - earned;
   },
 }));

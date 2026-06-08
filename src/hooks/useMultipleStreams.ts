@@ -3,6 +3,7 @@ import { useCurrentClient } from '@mysten/dapp-kit-react';
 import { POLL_INTERVAL_MS } from '@/lib/constants';
 import { streamKeys } from '@/lib/queryKeys';
 import type { StreamDetail } from './useStream';
+import { useTickerStore } from '@/store/useTickerStore';
 
 export function useMultipleStreams(streamIds: string[]) {
   const client = useCurrentClient();
@@ -49,6 +50,13 @@ export function useMultipleStreams(streamIds: string[]) {
             }),
           ),
         };
+
+        // Sync the ticker store for real-time optimistic updates
+        useTickerStore.getState().sync(id, {
+          balance: results[id].balance,
+          flowRatePerSec: results[id].flowRate,
+          lastSyncAt: results[id].lastTick,
+        });
       }
 
       return results;
