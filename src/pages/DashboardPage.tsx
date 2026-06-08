@@ -74,6 +74,7 @@ export default function DashboardPage() {
                 isIncoming={false}
                 totalAmount={stream.initialBalance}
                 currentBalance={liveStreams?.[stream.streamId]?.balance ?? stream.initialBalance}
+                flowRate={stream.flowRate}
               />
             ))}
           </div>
@@ -101,6 +102,7 @@ export default function DashboardPage() {
                 isIncoming={true}
                 totalAmount={stream.initialBalance}
                 currentBalance={liveStreams?.[stream.streamId]?.balance ?? stream.initialBalance}
+                flowRate={stream.flowRate}
               />
             ))}
           </div>
