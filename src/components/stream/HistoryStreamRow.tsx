@@ -1,5 +1,6 @@
 import { Link } from '@tanstack/react-router';
 import { useStream } from '@/hooks/useStream';
+import { useStreamHistory } from '@/hooks/useStreamHistory';
 import { StreamStatusBadge } from './StreamStatusBadge';
 import { STREAM_MODES, SUPPORTED_COINS } from '@/lib/constants';
 
@@ -7,10 +8,12 @@ interface HistoryStreamRowProps {
   streamId: string;
   isIncoming: boolean;
   createdAt: number;
+  initialBalance: bigint;
 }
 
-export function HistoryStreamRow({ streamId, isIncoming, createdAt }: HistoryStreamRowProps) {
+export function HistoryStreamRow({ streamId, isIncoming, createdAt, initialBalance }: HistoryStreamRowProps) {
   const { data: stream, isLoading } = useStream(streamId);
+  const { data: history } = useStreamHistory(streamId, !!stream && (stream.isRevoked || stream.balance === 0n), !!stream?.isRevoked);
 
   if (isLoading) {
     return (
@@ -61,10 +64,12 @@ export function HistoryStreamRow({ streamId, isIncoming, createdAt }: HistoryStr
       <div className="flex items-center gap-4 text-right">
         <div className="hidden sm:block">
           <div className="text-sm font-bold text-slate-900">
-            {Number(stream.balance) / Math.pow(10, coinDef.decimals)} {coinDef.symbol}
+            {history 
+              ? `${Number(initialBalance - history.remainingAtClosure) / Math.pow(10, coinDef.decimals)} ${coinDef.symbol}`
+              : 'Syncing...'}
           </div>
           <div className="text-xs text-slate-500 uppercase font-bold tracking-wider">
-            Remaining
+            Total Claimed
           </div>
         </div>
         <StreamStatusBadge status={status} />

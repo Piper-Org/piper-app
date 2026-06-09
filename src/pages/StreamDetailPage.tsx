@@ -18,6 +18,8 @@ import { PayDialog } from '@/components/stream/PayDialog';
 import { useStreamsByEvent } from '@/hooks/useStreamsByEvent';
 import { useIncomingStreams } from '@/hooks/useIncomingStreams';
 import { useRealtimeProgress } from '@/hooks/useRealtimeProgress';
+import { useStreamHistory } from '@/hooks/useStreamHistory';
+import { NETWORK } from '@/lib/constants';
 
 export default function StreamDetailPage() {
   const { id } = useParams({ from: '/stream/$id' });
@@ -36,7 +38,17 @@ export default function StreamDetailPage() {
     ? sentStreams?.find(s => s.streamId === id)
     : receivedStreams?.find(s => s.streamId === id);
 
-  const initialBalance = streamEvent?.initialBalance ?? stream?.balance ?? 0n;
+  let status: 'active' | 'inactive' = 'active';
+  if (stream?.isRevoked || stream?.balance === 0n) {
+    status = 'inactive';
+  }
+
+  const { data: history } = useStreamHistory(id, status === 'inactive', !!stream?.isRevoked);
+
+  const initialBalance = (status === 'inactive' && history?.historicalInitialBalance && history.historicalInitialBalance > 0n) 
+    ? history.historicalInitialBalance 
+    : (streamEvent?.initialBalance ?? stream?.balance ?? 0n);
+
   const progressPercent = useRealtimeProgress(id, initialBalance, stream?.balance ?? 0n);
 
   if (isLoading) {
@@ -54,16 +66,8 @@ export default function StreamDetailPage() {
   const isIncoming = activeAddressStr === stream.recipient.toLowerCase();
   const isAuthorizedSpender = activeAddressStr === stream.authorizedSpender?.toLowerCase();
   const isContinuous = stream.flowRate > 0n;
-  const coin = stream.coinType.includes('USDC') ? 'USDC' : 'SUI';
+  const coin = stream.coinType.toUpperCase().includes('USDC') ? 'USDC' : 'SUI';
   const coinDef = SUPPORTED_COINS[coin];
-
-  let status: 'active' | 'inactive' = 'active';
-  
-  // The Move contract sets is_active to false when a stream is fully exhausted OR revoked.
-  // Both states result in a balance of 0.
-  if (stream.isRevoked || stream.balance === 0n) {
-    status = 'inactive';
-  }
 
   const unlocked = Math.floor((Date.now() - Number(stream.lastTick)) / 1000) * Number(stream.flowRate);
   const isFullyUnlocked = stream.flowRate > 0n && BigInt(unlocked) >= stream.balance;
@@ -95,7 +99,9 @@ export default function StreamDetailPage() {
     }
   };
 
-  const tickLabel = isSender || isIncoming ? 'Resolve' : 'Sync';
+  let tickLabel = 'Sync';
+  if (isSender) tickLabel = 'Resolve';
+  else if (isIncoming) tickLabel = 'Withdraw';
 
   return (
     <motion.div key="stream-detail" variants={pageVariants} initial="initial" animate="animate" exit="exit" className="space-y-6 pb-20">
@@ -123,26 +129,66 @@ export default function StreamDetailPage() {
 
         <div className="mb-8 relative z-10">
           <div className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">
-            {isIncoming ? 'Earned so far' : 'Remaining Balance'}
+            {status === 'inactive' 
+              ? 'Total Claimed'
+              : (isIncoming ? (isContinuous ? 'Earned so far' : 'Withdrawn so far') : 'Remaining Balance')}
           </div>
           <div className="text-4xl text-slate-900">
-            <StreamTicker 
-              streamId={id} 
-              coinSymbol={coin} 
-              mode={isIncoming ? 'earned' : 'remaining'}
-              fallbackBalance={stream.balance}
-            />
+            {status === 'inactive' ? (
+              <span className="font-mono tabular-nums tracking-tight font-semibold">
+                {history 
+                  ? (Number(initialBalance - history.remainingAtClosure) / Math.pow(10, coinDef.decimals)).toLocaleString(undefined, {
+                      minimumFractionDigits: Math.min(4, coinDef.decimals),
+                      maximumFractionDigits: Math.min(6, coinDef.decimals),
+                    })
+                  : 'Syncing...'}
+                {history && <span className="ml-1 text-[0.8em] text-slate-500 font-sans font-medium">{coinDef.symbol}</span>}
+              </span>
+            ) : (!isContinuous && isIncoming ? (
+              <span className="font-mono tabular-nums tracking-tight font-semibold">
+                {(Number(initialBalance - stream.balance) / Math.pow(10, coinDef.decimals)).toLocaleString(undefined, {
+                  minimumFractionDigits: Math.min(4, coinDef.decimals),
+                  maximumFractionDigits: Math.min(6, coinDef.decimals),
+                })}
+                <span className="ml-1 text-[0.8em] text-slate-500 font-sans font-medium">{coinDef.symbol}</span>
+              </span>
+            ) : (
+              <StreamTicker 
+                streamId={id} 
+                coinSymbol={coin} 
+                mode={isIncoming ? 'earned' : 'remaining'}
+                fallbackBalance={stream.balance}
+              />
+            ))}
           </div>
         </div>
 
         <div className="space-y-4 relative z-10">
           <div className="flex justify-between p-4 bg-slate-50/80 backdrop-blur-md rounded-xl border border-slate-100">
+            <span className="text-sm font-semibold text-slate-500">Total Deposit</span>
+            <span className="text-sm font-mono font-bold text-slate-900">
+              {Number(initialBalance) / Math.pow(10, coinDef.decimals)} {coinDef.symbol}
+            </span>
+          </div>
+          <div className="flex justify-between p-4 bg-slate-50/80 backdrop-blur-md rounded-xl border border-slate-100">
+            <span className="text-sm font-semibold text-slate-500">Percent Left</span>
+            <span className="text-sm font-mono font-bold text-slate-900">
+              {status === 'inactive' 
+                ? (history ? `${((Number(history.remainingAtClosure) / Number(initialBalance)) * 100).toFixed(2)}%` : 'Syncing...') 
+                : `${Math.max(0, 100 - progressPercent).toFixed(2)}%`}
+            </span>
+          </div>
+          <div className="flex justify-between p-4 bg-slate-50/80 backdrop-blur-md rounded-xl border border-slate-100">
             <span className="text-sm font-semibold text-slate-500">Sender</span>
-            <span className="text-sm font-mono font-bold text-slate-900">{stream.sender.slice(0,8)}...{stream.sender.slice(-6)}</span>
+            <span className="text-sm font-mono font-bold text-slate-900">
+              {stream.sender.toLowerCase() === activeAddressStr ? "Me" : `${stream.sender.slice(0,8)}...${stream.sender.slice(-6)}`}
+            </span>
           </div>
           <div className="flex justify-between p-4 bg-slate-50/80 backdrop-blur-md rounded-xl border border-slate-100">
             <span className="text-sm font-semibold text-slate-500">Recipient</span>
-            <span className="text-sm font-mono font-bold text-slate-900">{stream.recipient.slice(0,8)}...{stream.recipient.slice(-6)}</span>
+            <span className="text-sm font-mono font-bold text-slate-900">
+              {stream.recipient.toLowerCase() === activeAddressStr ? "Me" : `${stream.recipient.slice(0,8)}...${stream.recipient.slice(-6)}`}
+            </span>
           </div>
           <div className="flex justify-between p-4 bg-slate-50/80 backdrop-blur-md rounded-xl border border-slate-100">
             <span className="text-sm font-semibold text-slate-500">Flow Rate</span>
@@ -162,6 +208,43 @@ export default function StreamDetailPage() {
             <StreamFlowAnimation flowRate={stream.flowRate} isIncoming={isIncoming} progressPercent={progressPercent} className="h-6" />
           </div>
         )}
+
+        {/* Historical Data Section for Inactive Streams */}
+        {status === 'inactive' && (
+          <div className="mt-8 pt-6 border-t border-slate-100 relative z-10">
+            <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-4 flex items-center justify-between">
+              Historical Data
+              <a 
+                href={`https://${NETWORK}.suivision.xyz/object/${id}`} 
+                target="_blank" 
+                rel="noreferrer"
+                className="text-emerald-500 hover:text-emerald-600 normal-case underline decoration-emerald-200 underline-offset-4"
+              >
+                View on SuiVision ↗
+              </a>
+            </h3>
+            <div className="bg-slate-50/50 rounded-xl p-4 border border-slate-100 space-y-3">
+              <div className="flex justify-between items-center">
+                <span className="text-sm font-medium text-slate-500">
+                  Unclaimed Balance
+                </span>
+                <span className="text-sm font-bold text-emerald-600">
+                  {history 
+                    ? `${(Number(history.remainingAtClosure) / Math.pow(10, coinDef.decimals))} ${coinDef.symbol}`
+                    : 'Syncing...'}
+                </span>
+              </div>
+              {history && (
+                <div className="flex justify-between items-center">
+                  <span className="text-sm font-medium text-slate-500">Time of Transaction</span>
+                  <span className="text-sm font-bold text-slate-700">
+                    {history.timestampMs ? new Date(Number(history.timestampMs)).toLocaleString() : 'Unknown'}
+                  </span>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
       </div>
 
       <div className="flex gap-4">
@@ -177,7 +260,7 @@ export default function StreamDetailPage() {
         
         {isContinuous && (
           <button 
-            disabled={stream.balance === 0n || isPending}
+            disabled={stream.balance === 0n || isPending || unlocked <= 0}
             onClick={handleTick}
             className="flex-1 bg-black hover:bg-slate-800 text-white font-bold py-4 rounded-xl transition-colors disabled:opacity-50 disabled:bg-slate-300 text-lg shadow-md"
           >
