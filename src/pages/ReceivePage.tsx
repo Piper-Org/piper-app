@@ -21,6 +21,31 @@ export default function ReceivePage() {
             <h2 className="text-sm font-bold text-slate-400 uppercase tracking-wider">Your Address</h2>
             <CopyAddress address={address} />
           </div>
+
+          <div className="bg-white p-6 rounded-3xl shadow-elevated border border-slate-100 space-y-4">
+            <h2 className="text-sm font-bold text-slate-400 uppercase tracking-wider">Testnet Faucets</h2>
+            <p className="text-sm text-slate-500 font-medium">Need tokens to test? Get free Testnet tokens from the official faucets.</p>
+            <div className="flex flex-col gap-3">
+              <a 
+                href={`https://faucet.sui.io/?address=${address}`} 
+                target="_blank" 
+                rel="noreferrer"
+                className="flex items-center justify-center gap-2 py-3 px-4 bg-slate-50 hover:bg-slate-100 text-slate-700 rounded-xl border border-slate-200 transition-colors font-semibold text-sm"
+              >
+                <img src="https://cryptologos.cc/logos/sui-sui-logo.svg?v=032" alt="SUI" className="w-5 h-5" />
+                Get Testnet SUI
+              </a>
+              <a 
+                href={`https://faucet.circle.com/?address=${address}`} 
+                target="_blank" 
+                rel="noreferrer"
+                className="flex items-center justify-center gap-2 py-3 px-4 bg-slate-50 hover:bg-slate-100 text-slate-700 rounded-xl border border-slate-200 transition-colors font-semibold text-sm"
+              >
+                <img src="https://cryptologos.cc/logos/usd-coin-usdc-logo.svg?v=032" alt="USDC" className="w-5 h-5" />
+                Get Testnet USDC
+              </a>
+            </div>
+          </div>
         </div>
       ) : (
         <div className="bg-slate-50 rounded-3xl p-8 text-center border border-slate-100">

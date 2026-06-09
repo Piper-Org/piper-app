@@ -1,4 +1,4 @@
-import { Link } from '@tanstack/react-router';
+import { Link, useLocation } from '@tanstack/react-router';
 import { ConnectButton } from '@mysten/dapp-kit-react/ui';
 import { useCurrentAccount } from '@mysten/dapp-kit-react';
 import { useZkLogin } from '@mysten/enoki/react';
@@ -8,6 +8,8 @@ import { SuiBalanceBadge } from '@/components/common/SuiBalanceBadge';
 export default function TopBar() {
   const { address: zkLoginAddress } = useZkLogin();
   const currentAccount = useCurrentAccount();
+  const location = useLocation();
+  const isDashboard = location.pathname === '/';
   
   const activeAddress = zkLoginAddress || currentAccount?.address;
 
@@ -15,13 +17,19 @@ export default function TopBar() {
     <header className="sticky top-0 z-40 w-full bg-surface-base/80 backdrop-blur-xl border-b border-border-subtle">
       <div className="flex h-16 w-full items-center justify-between px-4 sm:px-6 lg:px-8">
         
-        {/* Mobile Wordmark logo — hidden on desktop since it's in SideNav */}
-        <Link to="/" className="md:hidden text-2xl font-bold tracking-tight text-black select-none">
-          piper
-        </Link>
+        {/* Mobile Wordmark logo and slogan — hidden on desktop */}
+        <div className="md:hidden flex items-center gap-2">
+          <Link to="/" className="text-2xl font-bold tracking-tight text-black select-none">
+            piper
+          </Link>
+          <span className="text-slate-300 text-lg -mt-1">|</span>
+          <span className="text-xs font-medium text-slate-400">money flows...</span>
+        </div>
         
-        {/* On desktop, keep left side empty or put breadcrumbs/page title here later */}
-        <div className="hidden md:block flex-1" />
+        {/* Desktop Slogan */}
+        <div className="hidden md:flex flex-1 items-center px-4">
+          <span className="text-sm font-medium text-slate-400 tracking-wide">money flows...</span>
+        </div>
 
         <div className="flex items-center gap-2 sm:gap-3">
           {/* Network badge */}
@@ -31,7 +39,11 @@ export default function TopBar() {
           </span>
 
           {/* SUI Balance */}
-          {activeAddress && <SuiBalanceBadge address={activeAddress} />}
+          {activeAddress && !isDashboard && (
+            <div className="hidden sm:block">
+              <SuiBalanceBadge address={activeAddress} />
+            </div>
+          )}
 
           {/* Wallet connect */}
           {zkLoginAddress ? (
