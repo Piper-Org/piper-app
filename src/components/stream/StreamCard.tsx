@@ -66,15 +66,25 @@ export function StreamCard({
       
       <div className="mb-5 relative">
         <div className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">
-          {isIncoming ? 'Earned so far' : 'Remaining Balance'}
+          {isIncoming ? (mode === 'continuous' ? 'Earned so far' : 'Withdrawn so far') : 'Remaining Balance'}
         </div>
         <div className="text-2xl text-slate-900">
-          <StreamTicker 
-            streamId={id} 
-            coinSymbol={coin} 
-            mode={isIncoming ? 'earned' : 'remaining'}
-            fallbackBalance={currentBalance}
-          />
+          {mode === 'onDemand' && isIncoming ? (
+            <span className="font-mono tabular-nums tracking-tight font-semibold">
+              {(Number(totalAmount - currentBalance) / Math.pow(10, SUPPORTED_COINS[coin].decimals)).toLocaleString(undefined, {
+                minimumFractionDigits: Math.min(4, SUPPORTED_COINS[coin].decimals),
+                maximumFractionDigits: Math.min(6, SUPPORTED_COINS[coin].decimals),
+              })}
+              <span className="ml-1 text-[0.8em] text-slate-500 font-sans font-medium">{SUPPORTED_COINS[coin].symbol}</span>
+            </span>
+          ) : (
+            <StreamTicker 
+              streamId={id} 
+              coinSymbol={coin} 
+              mode={isIncoming ? 'earned' : 'remaining'}
+              fallbackBalance={currentBalance}
+            />
+          )}
         </div>
       </div>
       

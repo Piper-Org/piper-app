@@ -13,11 +13,14 @@ export interface SplitConfig {
   percent: number;
 }
 
+export type FlowInterval = 'second' | 'minute' | 'hour' | 'day' | 'month';
+
 export interface WizardDraft {
   mode: StreamMode;
   coinSymbol: CoinSymbol;
   amount: string;          // user-typed deposit amount
-  flowRatePerSec: string;  // user-typed or computed
+  flowRateAmount: string;  // user-typed flow rate value
+  flowRateInterval: FlowInterval; // interval for the flow rate
   durationSecs: string;    // user-typed or computed
   recipient: string;
   authorizedSpender: string; // pay-per-use only
@@ -42,7 +45,8 @@ const defaultDraft: WizardDraft = {
   mode: 'continuous',
   coinSymbol: 'SUI',
   amount: '',
-  flowRatePerSec: '',
+  flowRateAmount: '',
+  flowRateInterval: 'month',
   durationSecs: '',
   recipient: '',
   authorizedSpender: '',

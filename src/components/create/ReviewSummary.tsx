@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate } from '@tanstack/react-router';
+import { useCurrentAccount, useCurrentClient } from '@mysten/dapp-kit-react';
 import { Transaction } from '@mysten/sui/transactions';
 import { Piper } from '@usepiper/sdk';
 import { useWizardStore } from '@/store/useWizardStore';
@@ -12,6 +13,8 @@ export function ReviewSummary() {
   const { draft, reset } = useWizardStore();
   const navigate = useNavigate();
   const [isBuilding, setIsBuilding] = useState(false);
+  const account = useCurrentAccount();
+  const client = useCurrentClient();
 
   const { execute, isPending, error } = usePiperTx({
     onSuccess: () => {
@@ -29,17 +32,70 @@ export function ReviewSummary() {
       const amountFloat = parseFloat(draft.amount || '0');
       const baseUnits = BigInt(Math.floor(amountFloat * Math.pow(10, coinDef.decimals)));
       
-      const [splitCoin] = tx.splitCoins(tx.gas, [tx.pure.u64(baseUnits)]);
+      let splitCoin;
+      
+      if (draft.coinSymbol === 'SUI') {
+        [splitCoin] = tx.splitCoins(tx.gas, [tx.pure.u64(baseUnits)]);
+      } else {
+        if (!account) throw new Error("Wallet not connected");
+        
+        // Fetch all coins of the selected type for the user
+        const coinsResult = await client.getCoins({ 
+          owner: account.address, 
+          coinType: coinDef.type 
+        });
+        
+        const coins = coinsResult.data;
+        if (coins.length === 0) throw new Error(`No ${draft.coinSymbol} coins found in your wallet.`);
+        
+        // Create references to all the coin objects
+        const coinObjects = coins.map((c: any) => tx.object(c.coinObjectId));
+        const [primaryCoin, ...restCoins] = coinObjects;
+        
+        // Merge them all into the first coin so we have a sufficient balance
+        if (restCoins.length > 0) {
+          tx.mergeCoins(primaryCoin, restCoins);
+        }
+        
+        [splitCoin] = tx.splitCoins(primaryCoin, [tx.pure.u64(baseUnits)]);
+      }
+
+      let finalRecipient = draft.recipient;
+      if (finalRecipient.endsWith('.sui')) {
+        const res = await client.resolveNameServiceAddress({ name: finalRecipient });
+        if (!res) throw new Error(`Could not resolve SuiNS name: ${finalRecipient}`);
+        finalRecipient = res;
+      }
+
+      let finalSpender = draft.authorizedSpender || draft.recipient;
+      if (finalSpender.endsWith('.sui')) {
+        const res = await client.resolveNameServiceAddress({ name: finalSpender });
+        if (!res) throw new Error(`Could not resolve SuiNS name: ${finalSpender}`);
+        finalSpender = res;
+      }
 
       if (draft.mode === 'continuous') {
-        const rateFloat = parseFloat(draft.flowRatePerSec || '0');
+        const rateFloat = parseFloat(draft.flowRateAmount || '0');
         const rateUnits = BigInt(Math.floor(rateFloat * Math.pow(10, coinDef.decimals)));
+        
+        let secondsDivisor = 1n;
+        switch (draft.flowRateInterval) {
+          case 'minute': secondsDivisor = 60n; break;
+          case 'hour': secondsDivisor = 3600n; break;
+          case 'day': secondsDivisor = 86400n; break;
+          case 'month': secondsDivisor = 2592000n; break;
+        }
+        
+        let finalRatePerSec = rateUnits / secondsDivisor;
+        if (finalRatePerSec === 0n && rateUnits > 0n) {
+          finalRatePerSec = 1n; // Minimum flow rate is 1 fundamental unit per sec if they requested something too small
+        }
         
         const stream = Piper.createContinuousStream(tx, {
           coin: splitCoin,
           coinType: coinDef.type,
-          flowRate: rateUnits,
-          recipient: draft.recipient
+          flowRate: finalRatePerSec,
+          recipient: finalRecipient
         });
         
         Piper.shareStream(tx, stream, coinDef.type);
@@ -48,8 +104,8 @@ export function ReviewSummary() {
         const stream = Piper.createOnDemandStream(tx, {
           coin: splitCoin,
           coinType: coinDef.type,
-          recipient: draft.recipient,
-          authorizedSpender: draft.authorizedSpender || draft.recipient
+          recipient: finalRecipient,
+          authorizedSpender: finalSpender
         });
         
         Piper.shareStream(tx, stream, coinDef.type);
@@ -84,7 +140,7 @@ export function ReviewSummary() {
         {draft.mode === 'continuous' && (
           <div className="flex justify-between items-center pb-4 border-b border-slate-200">
             <span className="text-sm font-semibold text-slate-500">Flow Rate</span>
-            <span className="font-bold font-mono text-slate-900">{draft.flowRatePerSec} {draft.coinSymbol}/s</span>
+            <span className="font-bold font-mono text-slate-900">{draft.flowRateAmount} {draft.coinSymbol} / {draft.flowRateInterval}</span>
           </div>
         )}
         <div className="flex justify-between items-center">
