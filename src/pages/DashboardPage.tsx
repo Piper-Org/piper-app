@@ -3,6 +3,7 @@ import { motion } from 'framer-motion';
 import { LoadingSpinner } from '@/components/common/LoadingSpinner';
 import { pageVariants } from '@/lib/motion';
 import { StreamCard } from '@/components/stream/StreamCard';
+import { NetWorthHeader } from '@/components/stream/NetWorthHeader';
 import { useStreamsByEvent } from '@/hooks/useStreamsByEvent';
 import { useIncomingStreams } from '@/hooks/useIncomingStreams';
 import { useMultipleStreams } from '@/hooks/useMultipleStreams';
@@ -46,11 +47,21 @@ export default function DashboardPage() {
 
   const isLoading = isLoadingSent || isLoadingIncoming || isLoadingLive;
 
+  // Map events to their actual live stream details
+  const activeIncomingDetails = useMemo(() => 
+    activeIncoming.map(e => liveStreams?.[e.streamId]).filter(Boolean) as any[], 
+  [activeIncoming, liveStreams]);
+
+  const activeSentDetails = useMemo(() => 
+    activeSent.map(e => liveStreams?.[e.streamId]).filter(Boolean) as any[], 
+  [activeSent, liveStreams]);
+
   return (
     <motion.div key="dashboard" variants={pageVariants} initial="initial" animate="animate" exit="exit" className="space-y-8">
+      <NetWorthHeader activeIncoming={activeIncomingDetails} activeSent={activeSentDetails} />
+
       <header>
-        <h1 className="text-3xl font-bold text-black tracking-tight">Dashboard</h1>
-        <p className="text-slate-500 mt-1">Overview of your money streams.</p>
+        <h1 className="text-2xl font-extrabold text-black tracking-tight">Overview</h1>
       </header>
       
       <section>
@@ -63,20 +74,24 @@ export default function DashboardPage() {
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {activeIncoming.map((stream) => (
-              <StreamCard
-                key={stream.streamId}
-                id={stream.streamId}
-                mode={stream.flowRate > 0n ? 'continuous' : 'onDemand'}
-                coin={stream.coinType.includes('USDC') ? 'USDC' : 'SUI'}
-                status="active"
-                counterpartyAddress={stream.sender}
-                isIncoming={true}
-                totalAmount={stream.initialBalance}
-                currentBalance={liveStreams?.[stream.streamId]?.balance ?? stream.initialBalance}
-                flowRate={stream.flowRate}
-              />
-            ))}
+            {activeIncoming.map((stream) => {
+              const liveObj = liveStreams?.[stream.streamId];
+              const coinTypeStr = liveObj?.coinType || stream.coinType || '';
+              return (
+                <StreamCard
+                  key={stream.streamId}
+                  id={stream.streamId}
+                  mode={stream.flowRate > 0n ? 'continuous' : 'onDemand'}
+                  coin={coinTypeStr.toUpperCase().includes('USDC') ? 'USDC' : 'SUI'}
+                  status="active"
+                  counterpartyAddress={stream.sender}
+                  isIncoming={true}
+                  totalAmount={stream.initialBalance}
+                  currentBalance={liveObj?.balance ?? stream.initialBalance}
+                  flowRate={stream.flowRate}
+                />
+              );
+            })}
           </div>
         )}
       </section>
@@ -91,20 +106,24 @@ export default function DashboardPage() {
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {activeSent.map((stream) => (
-              <StreamCard
-                key={stream.streamId}
-                id={stream.streamId}
-                mode={stream.flowRate > 0n ? 'continuous' : 'onDemand'}
-                coin={stream.coinType.includes('USDC') ? 'USDC' : 'SUI'}
-                status="active"
-                counterpartyAddress={stream.recipient}
-                isIncoming={false}
-                totalAmount={stream.initialBalance}
-                currentBalance={liveStreams?.[stream.streamId]?.balance ?? stream.initialBalance}
-                flowRate={stream.flowRate}
-              />
-            ))}
+            {activeSent.map((stream) => {
+              const liveObj = liveStreams?.[stream.streamId];
+              const coinTypeStr = liveObj?.coinType || stream.coinType || '';
+              return (
+                <StreamCard
+                  key={stream.streamId}
+                  id={stream.streamId}
+                  mode={stream.flowRate > 0n ? 'continuous' : 'onDemand'}
+                  coin={coinTypeStr.toUpperCase().includes('USDC') ? 'USDC' : 'SUI'}
+                  status="active"
+                  counterpartyAddress={stream.recipient}
+                  isIncoming={false}
+                  totalAmount={stream.initialBalance}
+                  currentBalance={liveObj?.balance ?? stream.initialBalance}
+                  flowRate={stream.flowRate}
+                />
+              );
+            })}
           </div>
         )}
       </section>
