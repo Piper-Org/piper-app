@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { useWizardStore } from '@/store/useWizardStore';
 import { Input } from '@/components/ui/input';
+import { formatAddress } from '@/lib/utils';
 import { slideLeft } from '@/lib/motion';
 import { QrScannerDialog } from '@/components/common/QrScannerDialog';
 import { ScanLine, CheckCircle2 } from 'lucide-react';
@@ -83,7 +84,7 @@ export function RecipientInput() {
                 <>
                   <CheckCircle2 className="w-4 h-4 text-emerald-500" />
                   <span className="text-emerald-600 font-bold truncate">
-                    {resolvedAddress.slice(0, 8)}...{resolvedAddress.slice(-6)}
+                    {formatAddress(resolvedAddress, 8, 6)}
                   </span>
                 </>
               ) : (

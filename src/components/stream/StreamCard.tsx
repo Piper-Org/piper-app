@@ -6,6 +6,7 @@ import { StreamFlowAnimation } from './StreamFlowAnimation';
 import { Progress } from '@/components/ui/progress';
 import { STREAM_MODES, StreamMode, CoinSymbol, SUPPORTED_COINS } from '@/lib/constants';
 import { useRealtimeProgress } from '@/hooks/useRealtimeProgress';
+import { formatAddress } from '@/lib/utils';
 
 interface StreamCardProps {
   id: string;
@@ -56,7 +57,7 @@ export function StreamCard({
               {isIncoming ? 'From' : 'To'}
             </div>
             <div className="text-sm font-semibold text-slate-900 font-mono">
-              {counterpartyAddress.slice(0, 6)}...{counterpartyAddress.slice(-4)}
+              {formatAddress(counterpartyAddress, 6, 4)}
             </div>
           </div>
         </div>
@@ -106,10 +107,10 @@ export function StreamCard({
       ) : (
         <div className="relative mt-2">
           <div className="flex justify-between text-xs font-medium text-slate-500 mb-2">
-            <span>{Math.min(100, Math.max(0, progressPercent)).toFixed(1)}% Sent</span>
+            <span>{Math.min(100, Math.max(0, progressPercent)).toFixed(1)}% {isIncoming ? 'Withdrawn' : 'Claimed'}</span>
             <span>{Number(totalAmount) / Math.pow(10, SUPPORTED_COINS[coin].decimals)} {SUPPORTED_COINS[coin].symbol} Total</span>
           </div>
-          <Progress value={progressPercent} className="h-1.5 bg-slate-100" />
+          <Progress value={progressPercent} className="h-1.5 bg-slate-100" indicatorClassName="bg-emerald-500" />
         </div>
       )}
       

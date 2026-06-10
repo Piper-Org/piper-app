@@ -2,6 +2,7 @@ import { Link } from '@tanstack/react-router';
 import { useStream } from '@/hooks/useStream';
 import { useStreamHistory } from '@/hooks/useStreamHistory';
 import { StreamStatusBadge } from './StreamStatusBadge';
+import { formatAddress } from '@/lib/utils';
 import { STREAM_MODES, SUPPORTED_COINS } from '@/lib/constants';
 
 interface HistoryStreamRowProps {
@@ -53,7 +54,7 @@ export function HistoryStreamRow({ streamId, isIncoming, createdAt, initialBalan
         </div>
         <div>
           <div className="text-sm font-semibold text-slate-900 font-mono">
-            {isIncoming ? 'From' : 'To'} {counterparty.slice(0, 6)}...{counterparty.slice(-4)}
+            {isIncoming ? 'From' : 'To'} {formatAddress(counterparty, 6, 4)}
           </div>
           <div className="text-xs text-slate-500">
             {dateStr} • {modeData.label}
