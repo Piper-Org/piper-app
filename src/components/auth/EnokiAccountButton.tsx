@@ -1,11 +1,10 @@
 import { useState } from 'react';
 import { useZkLogin, useEnokiFlow } from '@mysten/enoki/react';
-import { LogOut, User, Copy, Check, Wallet } from 'lucide-react';
+import { LogOut, Copy, Check, Wallet } from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';

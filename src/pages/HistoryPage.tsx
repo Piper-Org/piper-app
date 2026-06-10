@@ -6,12 +6,23 @@ import { useStreamsByEvent } from '@/hooks/useStreamsByEvent';
 import { useIncomingStreams } from '@/hooks/useIncomingStreams';
 import { HistoryStreamRow } from '@/components/stream/HistoryStreamRow';
 import { useMultipleStreams } from '@/hooks/useMultipleStreams';
-import { Filter } from 'lucide-react';
 
 type FilterType = 'all' | 'sent' | 'received';
 
 export default function HistoryPage() {
-  const [filter, setFilter] = useState<FilterType>('all');
+  const [filter, setFilter] = useState<FilterType>(() => {
+    if (typeof window !== 'undefined') {
+      return (sessionStorage.getItem('historyFilter') as FilterType) || 'all';
+    }
+    return 'all';
+  });
+
+  const handleSetFilter = (f: FilterType) => {
+    setFilter(f);
+    if (typeof window !== 'undefined') {
+      sessionStorage.setItem('historyFilter', f);
+    }
+  };
   
   const { data: sentStreams, isLoading: isLoadingSent } = useStreamsByEvent();
   const { data: incomingStreams, isLoading: isLoadingIncoming } = useIncomingStreams();
@@ -59,7 +70,7 @@ export default function HistoryPage() {
           {(['all', 'sent', 'received'] as const).map((f) => (
             <button
               key={f}
-              onClick={() => setFilter(f)}
+              onClick={() => handleSetFilter(f)}
               className={`flex-1 sm:flex-none px-4 py-2 text-sm font-semibold rounded-lg capitalize transition-colors ${
                 filter === f 
                   ? 'bg-white text-slate-900 shadow-sm border border-slate-200/60' 
