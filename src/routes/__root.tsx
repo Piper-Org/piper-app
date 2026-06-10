@@ -3,6 +3,7 @@ import { AnimatePresence } from 'framer-motion';
 import AppShell from '@/components/layout/AppShell';
 import WalletGate from '@/components/auth/WalletGate';
 import { TxToaster } from '@/components/common/TxToast';
+import { EnokiTxModal } from '@/components/auth/EnokiTxModal';
 
 export const Route = createRootRoute({
   component: () => (
@@ -13,6 +14,7 @@ export const Route = createRootRoute({
         </AnimatePresence>
       </AppShell>
       <TxToaster position="bottom-center" />
+      <EnokiTxModal />
     </WalletGate>
   ),
 });

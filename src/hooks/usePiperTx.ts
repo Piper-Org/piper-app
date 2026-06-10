@@ -10,9 +10,12 @@
 import { useCallback, useState } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { useDAppKit, useCurrentClient } from '@mysten/dapp-kit-react';
+import { useZkLogin, useEnokiFlow } from '@mysten/enoki/react';
 import type { Transaction } from '@mysten/sui/transactions';
 import { streamKeys } from '@/lib/queryKeys';
 import { txToast } from '@/components/common/TxToast';
+import { NETWORK } from '@/lib/constants';
+import { useEnokiTxStore } from '@/store/useEnokiTxStore';
 
 interface UsePiperTxOptions {
   /** Optional: stream ID to invalidate on success */
@@ -25,6 +28,9 @@ export function usePiperTx(options: UsePiperTxOptions = {}) {
   const dAppKit = useDAppKit();
   const client = useCurrentClient();
   const queryClient = useQueryClient();
+  const { address: zkLoginAddress } = useZkLogin();
+  const enokiFlow = useEnokiFlow();
+  
   const [isPending, setIsPending] = useState(false);
   const [error, setError] = useState<Error | null>(null);
 
@@ -32,12 +38,50 @@ export function usePiperTx(options: UsePiperTxOptions = {}) {
     async (tx: Transaction) => {
       setIsPending(true);
       setError(null);
-      const toastId = txToast.loading('Executing transaction...', 'Please approve the request in your wallet.');
-
+      
+      let toastId: string | number | undefined;
+      
       try {
-        const result = await dAppKit.signAndExecuteTransaction({ 
-          transaction: tx
-        }) as any;
+        let result;
+        
+        if (zkLoginAddress) {
+          // Request user approval via our global modal first
+          const approved = await useEnokiTxStore.getState().requestApproval(tx);
+          if (!approved) {
+            setIsPending(false);
+            throw new Error('User rejected transaction');
+          }
+
+          toastId = txToast.loading('Executing transaction...', 'Processing via Enoki...');
+          
+          try {
+            // Execute using Enoki Keypair
+            const keypair = await enokiFlow.getKeypair({ network: NETWORK as any });
+            tx.setSender(zkLoginAddress);
+            result = await client.signAndExecuteTransaction({
+              transaction: tx,
+              signer: keypair,
+            }) as any;
+            
+            txToast.dismiss(toastId);
+          } catch (err) {
+            txToast.dismiss(toastId);
+            throw err;
+          }
+        } else {
+          // Execute using standard dAppKit (the wallet extension handles its own approval popup)
+          toastId = txToast.loading('Executing transaction...', 'Please approve the request in your wallet.');
+          
+          try {
+            result = await dAppKit.signAndExecuteTransaction({ 
+              transaction: tx
+            }) as any;
+            txToast.dismiss(toastId);
+          } catch (err) {
+            txToast.dismiss(toastId);
+            throw err;
+          }
+        }
 
         // Check for failure in some formats
         if (result.$kind === 'FailedTransaction') {
@@ -72,7 +116,7 @@ export function usePiperTx(options: UsePiperTxOptions = {}) {
         const networkStr = client.network === 'testnet' ? 'testnet' : 'mainnet';
         const explorerUrl = `https://suiscan.xyz/${networkStr}/tx/${digest}`;
         txToast.success('Transaction Successful!', 'Your action has been confirmed on the Sui blockchain.', explorerUrl);
-        txToast.dismiss(toastId as string);
+        if (toastId) txToast.dismiss(toastId as string);
 
         options.onSuccess?.(digest);
         return digest;
@@ -80,14 +124,14 @@ export function usePiperTx(options: UsePiperTxOptions = {}) {
         const e = err instanceof Error ? err : new Error(String(err));
         setError(e);
         txToast.error('Transaction Failed', e.message);
-        txToast.dismiss(toastId as string);
+        if (toastId) txToast.dismiss(toastId as string);
         options.onError?.(e);
         throw e;
       } finally {
         setIsPending(false);
       }
     },
-    [dAppKit, client, queryClient, options],
+    [dAppKit, client, queryClient, options, zkLoginAddress, enokiFlow],
   );
 
   return { execute, isPending, error };

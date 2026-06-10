@@ -23,12 +23,12 @@ export default function TopBar() {
             piper
           </Link>
           <span className="text-slate-300 text-lg -mt-1">|</span>
-          <span className="text-xs font-medium text-slate-400">money flows...</span>
+          <span className="text-xs font-medium text-slate-400">payment streams...</span>
         </div>
         
         {/* Desktop Slogan */}
         <div className="hidden md:flex flex-1 items-center px-4">
-          <span className="text-sm font-medium text-slate-400 tracking-wide">money flows...</span>
+          <span className="text-sm font-medium text-slate-400 tracking-wide">payment streams...</span>
         </div>
 
         <div className="flex items-center gap-2 sm:gap-3">
