@@ -4,7 +4,7 @@ import { LayoutDashboard, Plus, ArrowDownToLine, History } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 const navItems = [
-  { to: '/',        label: 'Dashboard', Icon: LayoutDashboard },
+  { to: '/dashboard', label: 'Dashboard', Icon: LayoutDashboard },
   { to: '/create',  label: 'Create',    Icon: Plus             },
   { to: '/receive', label: 'Receive',   Icon: ArrowDownToLine  },
   { to: '/history', label: 'History',   Icon: History          },
@@ -19,7 +19,7 @@ export default function BottomNav() {
         <ul className="flex items-center justify-around px-2 py-2">
           {navItems.map(({ to, label, Icon }) => {
             const isActive =
-              to === '/' ? location.pathname === '/' : location.pathname.startsWith(to);
+              to === '/dashboard' ? location.pathname === '/dashboard' : location.pathname.startsWith(to);
 
             return (
               <li key={to} className="flex-1">

@@ -4,7 +4,7 @@ import { LayoutDashboard, Plus, ArrowDownToLine, History } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 const navItems = [
-  { to: '/',        label: 'Dashboard', Icon: LayoutDashboard },
+  { to: '/dashboard', label: 'Dashboard', Icon: LayoutDashboard },
   { to: '/create',  label: 'Create',    Icon: Plus             },
   { to: '/receive', label: 'Receive',   Icon: ArrowDownToLine  },
   { to: '/history', label: 'History',   Icon: History          },
@@ -15,8 +15,8 @@ export default function SideNav() {
 
   return (
     <aside className="hidden md:flex flex-col w-64 border-r border-slate-200 bg-surface-content min-h-dvh fixed top-0 left-0 z-50">
-      <div className="p-6">
-        <Link to="/" className="text-2xl font-bold tracking-tight text-black select-none">
+      <div className="h-16 flex items-center px-6 border-b border-slate-100">
+        <Link to="/dashboard" className="text-2xl font-bold tracking-tight text-black select-none">
           piper
         </Link>
       </div>
@@ -24,7 +24,7 @@ export default function SideNav() {
       <nav className="flex-1 px-4 py-2 space-y-1">
         {navItems.map(({ to, label, Icon }) => {
           const isActive =
-            to === '/' ? location.pathname === '/' : location.pathname.startsWith(to);
+            to === '/dashboard' ? location.pathname === '/dashboard' : location.pathname.startsWith(to);
 
           return (
             <Link

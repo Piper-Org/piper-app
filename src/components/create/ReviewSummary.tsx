@@ -24,7 +24,7 @@ export function ReviewSummary() {
   const { execute, isPending, error } = usePiperTx({
     onSuccess: () => {
       reset();
-      setTimeout(() => navigate({ to: '/' }), 1000);
+      setTimeout(() => navigate({ to: '/dashboard' }), 1000);
     }
   });
 

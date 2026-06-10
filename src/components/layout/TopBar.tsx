@@ -18,8 +18,8 @@ export default function TopBar() {
       <div className="flex h-16 w-full items-center justify-between px-4 sm:px-6 lg:px-8">
         
         {/* Mobile Wordmark logo and slogan — hidden on desktop */}
-        <div className="md:hidden flex items-center gap-2">
-          <Link to="/" className="text-2xl font-bold tracking-tight text-black select-none">
+        <div className="flex-1 md:hidden">
+          <Link to="/dashboard" className="text-2xl font-bold tracking-tight text-black select-none">
             piper
           </Link>
           <span className="text-slate-300 text-lg -mt-1">|</span>
