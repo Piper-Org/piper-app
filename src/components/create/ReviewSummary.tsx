@@ -1,7 +1,11 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate } from '@tanstack/react-router';
-import { useCurrentAccount, useCurrentClient } from '@mysten/dapp-kit-react';
+import { useCurrentClient } from '@mysten/dapp-kit-react';
+import { useActiveAddress } from '@/hooks/useActiveAddress';
+import { useWalletBalances } from '@/hooks/useWalletBalances';
+import { txToast } from '@/components/common/TxToast';
+import { formatAddress } from '@/lib/utils';
 import { Transaction } from '@mysten/sui/transactions';
 import { Piper } from '@usepiper/sdk';
 import { useWizardStore } from '@/store/useWizardStore';
@@ -13,7 +17,8 @@ export function ReviewSummary() {
   const { draft, reset } = useWizardStore();
   const navigate = useNavigate();
   const [isBuilding, setIsBuilding] = useState(false);
-  const account = useCurrentAccount();
+  const activeAddress = useActiveAddress();
+  const { suiBalance, usdcBalance } = useWalletBalances();
   const client = useCurrentClient();
 
   const { execute, isPending, error } = usePiperTx({
@@ -37,11 +42,11 @@ export function ReviewSummary() {
       if (draft.coinSymbol === 'SUI') {
         [splitCoin] = tx.splitCoins(tx.gas, [tx.pure.u64(baseUnits)]);
       } else {
-        if (!account) throw new Error("Wallet not connected");
+        if (!activeAddress) throw new Error("Wallet not connected");
         
         // Fetch all coins of the selected type for the user
         const coinsResult = await client.getCoins({ 
-          owner: account.address, 
+          owner: activeAddress, 
           coinType: coinDef.type 
         });
         
@@ -112,12 +117,22 @@ export function ReviewSummary() {
       }
 
       await execute(tx);
-    } catch (err) {
+    } catch (err: any) {
       console.error(err);
+      if (err.message && err.message !== 'User rejected transaction' && !isPending) {
+        txToast.error('Transaction Failed', err.message);
+      }
     } finally {
       setIsBuilding(false);
     }
   };
+
+  const coinDef = SUPPORTED_COINS[draft.coinSymbol];
+  const amountFloat = parseFloat(draft.amount || '0');
+  const baseUnits = BigInt(Math.floor(amountFloat * Math.pow(10, coinDef.decimals)));
+  
+  const activeBalance = draft.coinSymbol === 'SUI' ? suiBalance : usdcBalance;
+  const isInsufficientBalance = baseUnits > activeBalance;
 
   const isLoading = isPending || isBuilding;
 
@@ -145,7 +160,7 @@ export function ReviewSummary() {
         )}
         <div className="flex justify-between items-center">
           <span className="text-sm font-semibold text-slate-500">Recipient</span>
-          <span className="font-mono text-xs font-semibold text-slate-900">{draft.recipient.slice(0,6)}...{draft.recipient.slice(-4)}</span>
+          <span className="font-mono text-xs font-semibold text-slate-900">{formatAddress(draft.recipient, 6, 4)}</span>
         </div>
       </div>
 
@@ -155,9 +170,15 @@ export function ReviewSummary() {
         </div>
       )}
 
+      {isInsufficientBalance && (
+        <div className="bg-rose-50 text-rose-600 text-sm p-3 rounded-lg border border-rose-200 font-medium flex items-center justify-center">
+          Insufficient {draft.coinSymbol} balance
+        </div>
+      )}
+
       <button
         onClick={handleCreate}
-        disabled={isLoading}
+        disabled={isLoading || isInsufficientBalance}
         className="w-full bg-emerald-500 hover:bg-emerald-600 text-white font-bold py-4 rounded-xl shadow-elevated transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
       >
         {isLoading ? 'Confirming...' : 'Sign & Create Stream'}

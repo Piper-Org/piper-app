@@ -12,12 +12,14 @@ import { StreamFlowAnimation } from '@/components/stream/StreamFlowAnimation';
 import { SUPPORTED_COINS } from '@/lib/constants';
 import { ArrowLeft } from 'lucide-react';
 import { usePiperTx } from '@/hooks/usePiperTx';
+import { formatAddress } from '@/lib/utils';
 import { Transaction } from '@mysten/sui/transactions';
 import { Piper } from '@usepiper/sdk';
 import { PayDialog } from '@/components/stream/PayDialog';
 import { useStreamsByEvent } from '@/hooks/useStreamsByEvent';
 import { useIncomingStreams } from '@/hooks/useIncomingStreams';
 import { useRealtimeProgress } from '@/hooks/useRealtimeProgress';
+import { Progress } from '@/components/ui/progress';
 import { useStreamHistory } from '@/hooks/useStreamHistory';
 import { NETWORK } from '@/lib/constants';
 
@@ -50,7 +52,7 @@ export default function StreamDetailPage() {
     : (streamEvent?.initialBalance ?? stream?.balance ?? 0n);
 
   const progressPercent = useRealtimeProgress(id, initialBalance, stream?.balance ?? 0n);
-
+  
   if (isLoading) {
     return <div className="flex justify-center py-20"><LoadingSpinner size={40} /></div>;
   }
@@ -102,6 +104,8 @@ export default function StreamDetailPage() {
   let tickLabel = 'Sync';
   if (isSender) tickLabel = 'Resolve';
   else if (isIncoming) tickLabel = 'Withdraw';
+  
+  const canTick = (isContinuous && (isSender || isIncoming)) || (!isContinuous && isIncoming);
 
   return (
     <motion.div key="stream-detail" variants={pageVariants} initial="initial" animate="animate" exit="exit" className="space-y-6 pb-20">
@@ -181,13 +185,13 @@ export default function StreamDetailPage() {
           <div className="flex justify-between p-4 bg-slate-50/80 backdrop-blur-md rounded-xl border border-slate-100">
             <span className="text-sm font-semibold text-slate-500">Sender</span>
             <span className="text-sm font-mono font-bold text-slate-900">
-              {stream.sender.toLowerCase() === activeAddressStr ? "Me" : `${stream.sender.slice(0,8)}...${stream.sender.slice(-6)}`}
+              {stream.sender.toLowerCase() === activeAddressStr ? "Me" : formatAddress(stream.sender, 8, 6)}
             </span>
           </div>
           <div className="flex justify-between p-4 bg-slate-50/80 backdrop-blur-md rounded-xl border border-slate-100">
             <span className="text-sm font-semibold text-slate-500">Recipient</span>
             <span className="text-sm font-mono font-bold text-slate-900">
-              {stream.recipient.toLowerCase() === activeAddressStr ? "Me" : `${stream.recipient.slice(0,8)}...${stream.recipient.slice(-6)}`}
+              {stream.recipient.toLowerCase() === activeAddressStr ? "Me" : formatAddress(stream.recipient, 8, 6)}
             </span>
           </div>
           <div className="flex justify-between p-4 bg-slate-50/80 backdrop-blur-md rounded-xl border border-slate-100">
@@ -198,7 +202,6 @@ export default function StreamDetailPage() {
           </div>
         </div>
 
-        {/* The visible water pipe animation */}
         {status === 'active' && isContinuous && (
           <div className="mt-8 relative z-10">
             <div className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3 flex items-center gap-2">
@@ -209,7 +212,21 @@ export default function StreamDetailPage() {
           </div>
         )}
 
-        {/* Historical Data Section for Inactive Streams */}
+        {status === 'active' && !isContinuous && (
+          <div className="mt-8 relative z-10">
+            <div className="flex justify-between items-end mb-3">
+              <div className="text-xs font-bold text-slate-400 uppercase tracking-wider flex items-center gap-2">
+                <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+                Live Flow Status
+              </div>
+              <div className="text-xs font-bold text-slate-500 uppercase tracking-wider">
+                {Math.min(100, Math.max(0, progressPercent)).toFixed(1)}% {isIncoming ? 'Withdrawn' : 'Claimed'}
+              </div>
+            </div>
+            <Progress value={progressPercent} className="h-2 bg-slate-100" indicatorClassName="bg-emerald-500" />
+          </div>
+        )}
+
         {status === 'inactive' && (
           <div className="mt-8 pt-6 border-t border-slate-100 relative z-10">
             <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-4 flex items-center justify-between">
@@ -247,7 +264,8 @@ export default function StreamDetailPage() {
         )}
       </div>
 
-      <div className="flex gap-4">
+      {/* Interaction Buttons Section */}
+      <div className="flex gap-4 relative z-10">
         {isSender && status === 'active' && (
           <button 
             disabled={isPending || isFullyUnlocked}
@@ -257,8 +275,8 @@ export default function StreamDetailPage() {
             {isPending ? 'Revoking...' : (isFullyUnlocked ? 'Completed' : 'Revoke')}
           </button>
         )}
-        
-        {isContinuous && (
+
+        {canTick && status === 'active' && (
           <button 
             disabled={stream.balance === 0n || isPending || unlocked <= 0}
             onClick={handleTick}
@@ -286,6 +304,7 @@ export default function StreamDetailPage() {
         coinType={coinDef.type}
         coinSymbol={coinDef.symbol}
         decimals={coinDef.decimals}
+        streamBalance={stream.balance}
       />
     </motion.div>
   );

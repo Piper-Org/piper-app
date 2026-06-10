@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { usePiperTx } from '@/hooks/usePiperTx';
+import { txToast } from '@/components/common/TxToast';
 import { Transaction } from '@mysten/sui/transactions';
 import { Piper } from '@usepiper/sdk';
 
@@ -12,18 +13,22 @@ interface PayDialogProps {
   coinType: string;
   coinSymbol: string;
   decimals: number;
+  streamBalance: bigint;
 }
 
-export function PayDialog({ open, onOpenChange, streamId, coinType, coinSymbol, decimals }: PayDialogProps) {
+export function PayDialog({ open, onOpenChange, streamId, coinType, coinSymbol, decimals, streamBalance }: PayDialogProps) {
   const [amount, setAmount] = useState('');
   const { execute, isPending } = usePiperTx({ streamId, onSuccess: () => onOpenChange(false) });
 
+  const rawAmount = amount ? BigInt(Math.floor(Number(amount) * Math.pow(10, decimals))) : 0n;
+  const isExceedingBalance = rawAmount > streamBalance;
+
+  const maxAvailableDisplay = (Number(streamBalance) / Math.pow(10, decimals)).toLocaleString(undefined, { maximumFractionDigits: 6 });
+
   const handlePay = async () => {
-    if (!amount || isNaN(Number(amount)) || Number(amount) <= 0) return;
+    if (!amount || isNaN(Number(amount)) || Number(amount) <= 0 || isExceedingBalance) return;
 
     try {
-      // Convert display amount to raw blockchain integer amount
-      const rawAmount = BigInt(Math.floor(Number(amount) * Math.pow(10, decimals)));
       
       const tx = new Transaction();
       Piper.pay(tx, {
@@ -33,8 +38,11 @@ export function PayDialog({ open, onOpenChange, streamId, coinType, coinSymbol, 
       });
 
       await execute(tx);
-    } catch (err) {
-      console.error('Failed to execute pay:', err);
+    } catch (err: any) {
+      if (err.message !== 'User rejected transaction') {
+        console.error('Failed to execute pay:', err);
+        txToast.error('Transaction Failed', err.message);
+      }
     }
   };
 
@@ -67,15 +75,28 @@ export function PayDialog({ open, onOpenChange, streamId, coinType, coinSymbol, 
                 {coinSymbol}
               </span>
             </div>
+            <div className="mt-2 flex justify-between text-xs font-semibold">
+              <span className={isExceedingBalance ? "text-rose-500" : "text-slate-400"}>
+                {isExceedingBalance ? "Amount exceeds available balance" : `Available: ${maxAvailableDisplay} ${coinSymbol}`}
+              </span>
+              <button 
+                onClick={() => setAmount((Number(streamBalance) / Math.pow(10, decimals)).toString())}
+                className="text-emerald-500 hover:text-emerald-600 uppercase tracking-wider"
+              >
+                Max
+              </button>
+            </div>
           </div>
 
-          <button 
-            disabled={isPending || !amount || Number(amount) <= 0}
-            onClick={handlePay}
-            className="w-full bg-black hover:bg-slate-800 text-white font-bold py-4 rounded-xl transition-colors disabled:opacity-50 disabled:bg-slate-300 text-lg shadow-md"
-          >
-            {isPending ? 'Withdrawing...' : 'Withdraw'}
-          </button>
+          <div className="space-y-3">
+            <button 
+              disabled={isPending || !amount || Number(amount) <= 0 || isExceedingBalance}
+              onClick={handlePay}
+              className="w-full bg-black hover:bg-slate-800 text-white font-bold py-4 rounded-xl transition-colors disabled:opacity-50 disabled:bg-slate-300 disabled:cursor-not-allowed text-lg shadow-md"
+            >
+              {isPending ? 'Withdrawing...' : 'Withdraw'}
+            </button>
+          </div>
         </div>
       </DialogContent>
     </Dialog>

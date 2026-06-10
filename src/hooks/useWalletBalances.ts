@@ -1,18 +1,19 @@
 import { useQuery } from '@tanstack/react-query';
-import { useCurrentAccount, useCurrentClient } from '@mysten/dapp-kit-react';
+import { useCurrentClient } from '@mysten/dapp-kit-react';
 import { SUPPORTED_COINS } from '@/lib/constants';
+import { useActiveAddress } from '@/hooks/useActiveAddress';
 
 export function useWalletBalances() {
-  const account = useCurrentAccount();
+  const address = useActiveAddress();
   const client = useCurrentClient();
 
   // 1. Fetch SUI Balance
   const { data: suiBalance, isLoading: isLoadingSui } = useQuery({
-    queryKey: ['balance', 'SUI', account?.address],
-    enabled: !!account?.address,
+    queryKey: ['balance', 'SUI', address],
+    enabled: !!address,
     queryFn: async () => {
-      if (!account?.address) return 0n;
-      const res = await client.getBalance({ owner: account.address });
+      if (!address) return 0n;
+      const res = await client.getBalance({ owner: address });
       return BigInt(res.totalBalance);
     },
     refetchInterval: 10000,
@@ -20,12 +21,12 @@ export function useWalletBalances() {
 
   // 2. Fetch USDC Balance
   const { data: usdcBalance, isLoading: isLoadingUsdc } = useQuery({
-    queryKey: ['balance', 'USDC', account?.address],
-    enabled: !!account?.address,
+    queryKey: ['balance', 'USDC', address],
+    enabled: !!address,
     queryFn: async () => {
-      if (!account?.address) return 0n;
+      if (!address) return 0n;
       const res = await client.getBalance({ 
-        owner: account.address,
+        owner: address,
         coinType: SUPPORTED_COINS.USDC.type
       });
       return BigInt(res.totalBalance);

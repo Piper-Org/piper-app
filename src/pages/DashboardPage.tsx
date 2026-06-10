@@ -48,13 +48,13 @@ export default function DashboardPage() {
   const isLoading = isLoadingSent || isLoadingIncoming || isLoadingLive;
 
   // Map events to their actual live stream details
-  const activeIncomingDetails = useMemo(() => 
-    activeIncoming.map(e => liveStreams?.[e.streamId]).filter(Boolean) as any[], 
-  [activeIncoming, liveStreams]);
+  const activeIncomingDetails = useMemo(() =>
+    activeIncoming.map(e => liveStreams?.[e.streamId]).filter(Boolean) as any[],
+    [activeIncoming, liveStreams]);
 
-  const activeSentDetails = useMemo(() => 
-    activeSent.map(e => liveStreams?.[e.streamId]).filter(Boolean) as any[], 
-  [activeSent, liveStreams]);
+  const activeSentDetails = useMemo(() =>
+    activeSent.map(e => liveStreams?.[e.streamId]).filter(Boolean) as any[],
+    [activeSent, liveStreams]);
 
   return (
     <motion.div key="dashboard" variants={pageVariants} initial="initial" animate="animate" exit="exit" className="space-y-8">
@@ -63,7 +63,7 @@ export default function DashboardPage() {
       <header>
         <h1 className="text-2xl font-extrabold text-black tracking-tight">Overview</h1>
       </header>
-      
+
       <section>
         <h2 className="text-sm font-bold text-slate-400 uppercase tracking-wider mb-4">Incoming Streams</h2>
         {isLoading ? (
