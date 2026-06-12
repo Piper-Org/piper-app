@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { motion, useScroll, useTransform, animate, useMotionValue, AnimatePresence } from 'framer-motion';
 import { Link } from '@tanstack/react-router';
-import { ArrowRight, ArrowUp, Zap, ShieldCheck, Coins, ChevronDown, Rocket, Droplets, ArrowRightLeft } from 'lucide-react';
+import { ArrowRight, ArrowUp, ShieldCheck, Coins, ChevronDown, Rocket, Droplets, ArrowRightLeft } from 'lucide-react';
 import { SuiLogo } from '@/components/common/SuiLogo';
 import { UsdcLogo } from '@/components/common/UsdcLogo';
 
