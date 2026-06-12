@@ -9,7 +9,7 @@ export default function TopBar() {
   const { address: zkLoginAddress } = useZkLogin();
   const currentAccount = useCurrentAccount();
   const location = useLocation();
-  const isDashboard = location.pathname === '/';
+  const isDashboard = location.pathname === '/dashboard';
   
   const activeAddress = zkLoginAddress || currentAccount?.address;
 
