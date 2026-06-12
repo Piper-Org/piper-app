@@ -1,7 +1,9 @@
-import { useState, useRef } from 'react';
-import { motion, useScroll, useTransform } from 'framer-motion';
+import { useState, useEffect } from 'react';
+import { motion, useScroll, useTransform, animate, useMotionValue } from 'framer-motion';
 import { Link } from '@tanstack/react-router';
 import { ArrowRight, Zap, ShieldCheck, Coins, ChevronDown, Rocket, Droplets, ArrowRightLeft } from 'lucide-react';
+import { SuiLogo } from '@/components/common/SuiLogo';
+import { UsdcLogo } from '@/components/common/UsdcLogo';
 
 const FADE_UP = {
   hidden: { opacity: 0, y: 30 },
@@ -17,6 +19,28 @@ export default function LandingPage() {
   const { scrollYProgress } = useScroll();
   const y = useTransform(scrollYProgress, [0, 1], ['0%', '50%']);
 
+  // Enoki often forces or defaults the OAuth callback to the root origin.
+  // We must catch the token here and forward it to the dashboard where WalletGate can process it.
+  useEffect(() => {
+    if (window.location.hash.includes('id_token=')) {
+      window.location.href = '/dashboard' + window.location.hash;
+    }
+  }, []);
+
+  const count = useMotionValue(100);
+  const senderDisplay = useTransform(count, (latest) => `${latest.toFixed(2)} USDC`);
+  const receiverDisplay = useTransform(count, (latest) => `${(100 - latest).toFixed(2)} USDC`);
+
+  useEffect(() => {
+    const controls = animate(count, 0, {
+      duration: 100,
+      ease: "linear",
+      repeat: Infinity,
+      repeatType: "loop"
+    });
+    return controls.stop;
+  }, []);
+
   return (
     <div className="min-h-screen bg-slate-50 text-slate-900 overflow-hidden font-sans selection:bg-emerald-200">
       
@@ -25,6 +49,39 @@ export default function LandingPage() {
         <motion.div style={{ y }} className="absolute inset-0 opacity-40">
           <div className="absolute top-[-20%] left-[-10%] w-[50%] h-[50%] rounded-full bg-emerald-400 blur-[120px] mix-blend-multiply opacity-50 animate-pulse-slow" />
           <div className="absolute bottom-[-10%] right-[-10%] w-[60%] h-[60%] rounded-full bg-blue-300 blur-[120px] mix-blend-multiply opacity-40 animate-pulse-slow" style={{ animationDelay: '2s' }} />
+        </motion.div>
+
+        {/* Floating Background Coins */}
+        <motion.div 
+          className="absolute top-[5%] left-[-2%] opacity-[0.05] md:opacity-[0.04]"
+          animate={{ y: [0, -20, 0], rotate: [0, 10, 0] }}
+          transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
+        >
+          <SuiLogo className="w-48 h-48 md:w-80 md:h-80 text-blue-500" />
+        </motion.div>
+        
+        <motion.div 
+          className="absolute top-[65%] left-[5%] opacity-[0.05] md:opacity-[0.04]"
+          animate={{ y: [0, 20, 0], rotate: [0, -10, 0] }}
+          transition={{ duration: 7, repeat: Infinity, ease: "easeInOut", delay: 1 }}
+        >
+          <UsdcLogo className="w-32 h-32 md:w-64 md:h-64" />
+        </motion.div>
+        
+        <motion.div 
+          className="absolute top-[18%] right-[-5%] opacity-[0.05] md:opacity-[0.04]"
+          animate={{ y: [0, 30, 0], rotate: [0, -15, 0] }}
+          transition={{ duration: 8, repeat: Infinity, ease: "easeInOut", delay: 2 }}
+        >
+          <UsdcLogo className="w-56 h-56 md:w-96 md:h-96" />
+        </motion.div>
+
+        <motion.div 
+          className="absolute top-[80%] right-[10%] opacity-[0.05] md:opacity-[0.04]"
+          animate={{ y: [0, -25, 0], rotate: [0, 15, 0] }}
+          transition={{ duration: 9, repeat: Infinity, ease: "easeInOut", delay: 1.5 }}
+        >
+          <SuiLogo className="w-40 h-40 md:w-72 md:h-72 text-blue-500" />
         </motion.div>
       </div>
 
@@ -51,11 +108,11 @@ export default function LandingPage() {
             </motion.div>
             
             <motion.h1 variants={FADE_UP} className="text-5xl md:text-7xl font-extrabold tracking-tight text-slate-900 leading-[1.1]">
-              Make payments <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-500 to-blue-500">alive.</span>
+              Make Payments <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-500 to-blue-500">Alive.</span>
             </motion.h1>
             
-            <motion.p variants={FADE_UP} className="text-xl md:text-2xl text-slate-500 font-medium max-w-2xl mx-auto leading-relaxed">
-              Why transfer when you can stream it? Payments don't have to be static. Stream value second by second, completely on-chain.
+            <motion.p variants={FADE_UP} className="text-base md:text-2xl text-slate-500 font-medium max-w-2xl mx-auto leading-relaxed">
+              Payments don't have to be static transfers when you can stream value second by second, completely on-chain.
             </motion.p>
             
             <motion.div variants={FADE_UP} className="pt-8 flex flex-col sm:flex-row items-center justify-center gap-4">
@@ -66,6 +123,9 @@ export default function LandingPage() {
                 Start Streaming <Rocket className="w-5 h-5" />
               </Link>
             </motion.div>
+            <motion.div variants={FADE_UP} className="mt-8 flex items-center justify-center gap-2 text-slate-400 font-medium text-sm">
+              Powered by <SuiLogo className="w-5 h-5 text-blue-500" /> <span className="text-blue-500 font-bold tracking-tight -ml-1">SUI</span>
+            </motion.div>
           </motion.div>
 
           {/* Visual Animation Section */}
@@ -74,66 +134,84 @@ export default function LandingPage() {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true, margin: "-100px" }}
             transition={{ duration: 0.8, delay: 0.2 }}
-            className="mt-24 w-full max-w-4xl bg-white/40 backdrop-blur-xl border border-white/50 rounded-3xl p-8 shadow-2xl relative overflow-hidden"
+            className="mt-24 w-full max-w-4xl bg-white/40 backdrop-blur-xl border border-white/50 rounded-3xl py-6 px-4 md:px-8 shadow-2xl relative overflow-hidden"
           >
             <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent pointer-events-none" />
             <h3 className="text-center text-sm font-bold text-slate-400 uppercase tracking-widest mb-12">The Paradigm Shift</h3>
             
             <div className="flex flex-col md:flex-row items-center justify-between gap-8 relative z-10">
               <div className="flex flex-col items-center gap-4">
-                <div className="w-32 h-32 rounded-2xl bg-slate-100 border border-slate-200 flex items-center justify-center shadow-inner">
+                <div className="font-semibold text-slate-600">Sender</div>
+                <div className="w-28 h-28 rounded-2xl bg-slate-100 border border-slate-200 flex items-center justify-center shadow-inner p-2">
                   <div className="text-center">
-                    <div className="font-bold text-slate-900">100 SUI</div>
-                    <div className="text-xs text-slate-500 font-medium">Locked</div>
+                    <motion.div className="font-bold text-slate-900 tabular-nums text-sm">{senderDisplay}</motion.div>
+                    <div className="text-[10px] text-slate-500 font-medium mt-1 leading-tight">Instantly<br/>Available</div>
                   </div>
                 </div>
-                <div className="font-semibold text-slate-600">Sender</div>
               </div>
 
               {/* Streaming Animation */}
-              <div className="flex-1 flex items-center justify-center h-20 w-full md:w-auto relative">
-                <div className="absolute w-full h-1 bg-slate-200 rounded-full overflow-hidden">
+              <div className="flex-1 flex items-center justify-center h-32 md:h-20 w-full md:w-auto relative">
+                {/* Desktop Horizontal Line */}
+                <div className="hidden md:block absolute w-full h-1 bg-slate-200 rounded-full overflow-hidden">
                   <motion.div 
                     className="h-full bg-gradient-to-r from-emerald-400 to-blue-500"
                     animate={{ width: ["0%", "100%"] }}
-                    transition={{ duration: 20, ease: "linear", repeat: Infinity }}
+                    transition={{ duration: 100, ease: "linear", repeat: Infinity, repeatType: "loop" }}
                   />
                 </div>
                 
-                {/* Particles */}
+                {/* Mobile Vertical Line */}
+                <div className="block md:hidden absolute h-28 w-1.5 bg-slate-200/60 rounded-full overflow-hidden shadow-inner">
+                  <motion.div 
+                    className="w-full bg-gradient-to-b from-emerald-400 to-blue-500"
+                    animate={{ height: ["0%", "100%"] }}
+                    transition={{ duration: 100, ease: "linear", repeat: Infinity, repeatType: "loop" }}
+                  />
+                  {/* Shooting Light Pulse */}
+                  <motion.div 
+                    className="absolute left-0 right-0 h-12 bg-gradient-to-b from-transparent via-white to-transparent blur-[1px] mix-blend-overlay"
+                    animate={{ top: ["-50%", "150%"] }}
+                    transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+                  />
+                </div>
+                
+                {/* Desktop Horizontal Particles */}
                 {[...Array(5)].map((_, i) => (
                   <motion.div
-                    key={i}
-                    className="absolute w-3 h-3 bg-emerald-500 rounded-full shadow-[0_0_10px_rgba(16,185,129,0.8)]"
-                    style={{ left: "-10px" }}
+                    key={`h-${i}`}
+                    className="absolute w-3 h-3 bg-emerald-500 rounded-full shadow-[0_0_10px_rgba(16,185,129,0.8)] hidden md:block"
+                    style={{ left: "-10px", top: "50%", y: "-50%" }}
                     animate={{ left: "100%", opacity: [0, 1, 1, 0] }}
                     transition={{ 
-                      duration: 2, 
+                      duration: 1.5, 
                       repeat: Infinity, 
-                      delay: i * 0.4,
+                      delay: i * 0.3,
                       ease: "linear" 
                     }}
                   />
                 ))}
+
+
               </div>
 
               <div className="flex flex-col items-center gap-4">
-                <div className="w-32 h-32 rounded-2xl bg-white border-2 border-emerald-400 flex items-center justify-center shadow-elevated relative overflow-hidden">
+                <div className="font-semibold text-slate-600 order-last md:order-first">Receiver</div>
+                <div className="w-28 h-28 rounded-2xl bg-white border-2 border-emerald-400 flex items-center justify-center shadow-elevated relative overflow-hidden p-2">
                   <motion.div 
                     className="absolute bottom-0 left-0 right-0 bg-emerald-100/50 -z-10"
                     animate={{ height: ["0%", "100%"] }}
-                    transition={{ duration: 20, ease: "linear", repeat: Infinity }}
+                    transition={{ duration: 100, ease: "linear", repeat: Infinity, repeatType: "loop" }}
                   />
                   <div className="text-center">
                     <motion.div 
-                      className="font-bold text-emerald-600 text-xl"
+                      className="font-bold text-emerald-600 text-sm tabular-nums"
                     >
-                      Real-time
+                      {receiverDisplay}
                     </motion.div>
-                    <div className="text-xs text-emerald-500/70 font-semibold uppercase tracking-wider mt-1">Available</div>
+                    <div className="text-[10px] text-emerald-500/80 font-semibold mt-1 leading-tight">Instantly<br/>Withdrawable</div>
                   </div>
                 </div>
-                <div className="font-semibold text-slate-600">Receiver</div>
               </div>
             </div>
           </motion.div>
