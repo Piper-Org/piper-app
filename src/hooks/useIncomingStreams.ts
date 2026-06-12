@@ -49,6 +49,7 @@ export function useIncomingStreams() {
             initialBalance: BigInt(fields.initial_balance ?? '0'),
             coinType: e.type.match(/<(.+)>/)?.[1] ?? '',
             createdAt: Number(e.timestampMs ?? 0),
+            transactionDigest: e.id.txDigest,
           };
         });
     },

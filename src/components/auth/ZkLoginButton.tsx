@@ -13,7 +13,7 @@ export default function ZkLoginButton() {
       const url = await enokiFlow.createAuthorizationURL({
         provider: 'google',
         clientId: ZKLOGIN_CLIENT_ID,
-        redirectUrl: window.location.origin,
+        redirectUrl: window.location.origin + '/dashboard',
         network: NETWORK,
       });
       
