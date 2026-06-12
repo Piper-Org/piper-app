@@ -28,10 +28,7 @@ export function QrScannerDialog({ open, onOpenChange, onScan }: QrScannerDialogP
             onError={(error) => {
               console.error("QR Scan Error:", error);
             }}
-            components={{
-              audio: false, // Turn off beep sound
-              tracker: true, // Show the framing guide
-            }}
+
           />
         </div>
       </DialogContent>

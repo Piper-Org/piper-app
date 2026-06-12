@@ -35,9 +35,9 @@ export function useStreamEvents(streamId: string | undefined) {
 
       const events = await client.queryEvents({
         query: {
-          MoveEventField: {
-            path: '/stream_id',
-            value: streamId,
+          MoveModule: {
+            package: PIPER_PACKAGE_ID,
+            module: 'stream',
           },
         },
         limit: 100,
@@ -57,7 +57,7 @@ export function useStreamEvents(streamId: string | undefined) {
           ? (typeName as PiperEventType)
           : 'PaymentSent';
         return { type, timestampMs, data };
-      });
+      }).filter((e) => e.data.stream_id === streamId);
     },
   });
 }

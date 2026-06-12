@@ -15,6 +15,7 @@
     "@mysten/sui": "latest",
     "@tanstack/react-query": "^5.0.0",
     "@tanstack/react-router": "^1.0.0",
+    "@usepiper/sdk": "^0.1.0",
     "@yudiel/react-qr-scanner": "^2.6.0",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",

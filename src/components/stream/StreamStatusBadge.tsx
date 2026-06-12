@@ -1,6 +1,3 @@
-import { Badge } from '@/components/ui/badge';
-import { StreamStatus, STREAM_STATUS_COLORS } from '@/lib/theme';
-import { cn } from '@/lib/utils';
 
 interface StreamStatusBadgeProps {
   status: 'active' | 'inactive';
