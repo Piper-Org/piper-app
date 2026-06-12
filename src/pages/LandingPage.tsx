@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
-import { motion, useScroll, useTransform, animate, useMotionValue } from 'framer-motion';
+import { motion, useScroll, useTransform, animate, useMotionValue, AnimatePresence } from 'framer-motion';
 import { Link } from '@tanstack/react-router';
-import { ArrowRight, Zap, ShieldCheck, Coins, ChevronDown, Rocket, Droplets, ArrowRightLeft } from 'lucide-react';
+import { ArrowRight, ArrowUp, Zap, ShieldCheck, Coins, ChevronDown, Rocket, Droplets, ArrowRightLeft } from 'lucide-react';
 import { SuiLogo } from '@/components/common/SuiLogo';
 import { UsdcLogo } from '@/components/common/UsdcLogo';
 
@@ -15,9 +15,43 @@ const STAGGER = {
   show: { opacity: 1, transition: { staggerChildren: 0.15 } }
 };
 
+const WORD_ANIMATIONS = [
+  // 0: 3D Flip
+  {
+    initial: { opacity: 0, y: 30, rotateX: -90 },
+    animate: { opacity: 1, y: 0, rotateX: 0 },
+    exit: { opacity: 0, y: -30, rotateX: 90 },
+    transition: { duration: 0.5, type: 'spring', damping: 20, stiffness: 120 }
+  },
+  // 1: Typewriter / Reveal
+  {
+    initial: { opacity: 1, clipPath: "inset(0 100% 0 0)" },
+    animate: { opacity: 1, clipPath: "inset(0 0% 0 0)" },
+    exit: { opacity: 1, clipPath: "inset(0 100% 0 0)" },
+    transition: { duration: 0.6, ease: "linear" }
+  },
+  // 2: Soft Blur Scale
+  {
+    initial: { opacity: 0, scale: 0.8, filter: "blur(8px)" },
+    animate: { opacity: 1, scale: 1, filter: "blur(0px)" },
+    exit: { opacity: 0, scale: 1.2, filter: "blur(8px)" },
+    transition: { duration: 0.5, ease: "easeInOut" }
+  }
+];
+
 export default function LandingPage() {
   const { scrollYProgress } = useScroll();
   const y = useTransform(scrollYProgress, [0, 1], ['0%', '50%']);
+
+  const heroWords = ["Stream.", "Alive.", "Stream.", "Flow.", "Stream.", "Alive.", "Flow."];
+  const [currentWordIndex, setCurrentWordIndex] = useState(0);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setCurrentWordIndex((prev) => (prev + 1) % heroWords.length);
+    }, 3000);
+    return () => clearInterval(interval);
+  }, []);
 
   // Enoki often forces or defaults the OAuth callback to the root origin.
   // We must catch the token here and forward it to the dashboard where WalletGate can process it.
@@ -91,28 +125,42 @@ export default function LandingPage() {
           <div className="text-2xl font-bold tracking-tight text-black select-none flex items-center gap-2">
             piper <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
           </div>
-          <Link 
-            to="/dashboard"
+          <a 
+            href="#"
             className="group flex items-center gap-2 bg-black hover:bg-slate-800 text-white font-semibold py-2.5 px-5 rounded-full transition-all shadow-md hover:shadow-lg"
           >
-            Launch DApp
+            Read Docs
             <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-          </Link>
+          </a>
         </nav>
 
         {/* Hero Section */}
         <main className="pt-24 pb-32 px-6 md:px-12 max-w-7xl mx-auto flex flex-col items-center text-center">
           <motion.div variants={STAGGER} initial="hidden" animate="show" className="max-w-4xl space-y-6">
-            <motion.div variants={FADE_UP} className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-emerald-100/50 border border-emerald-200 text-emerald-700 text-sm font-semibold mb-6">
-              <Zap className="w-4 h-4" /> The Future of Programmable Money
-            </motion.div>
-            
-            <motion.h1 variants={FADE_UP} className="text-5xl md:text-7xl font-extrabold tracking-tight text-slate-900 leading-[1.1]">
-              Make Payments <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-500 to-blue-500">Alive.</span>
+            <motion.h1 variants={FADE_UP} className="text-6xl md:text-8xl font-extrabold tracking-tight text-slate-900 leading-[1.1] flex flex-wrap items-center justify-center gap-x-4">
+              <span>Make Payments</span>
+              <span className="inline-grid relative">
+                {/* Invisible placeholder guarantees the container width matches the longest word */}
+                <span className="invisible col-start-1 row-start-1 pointer-events-none select-none" aria-hidden="true">
+                  Stream.
+                </span>
+                <AnimatePresence mode="wait">
+                  <motion.span
+                    key={`${currentWordIndex}-${heroWords[currentWordIndex]}`}
+                    initial={WORD_ANIMATIONS[currentWordIndex % WORD_ANIMATIONS.length].initial}
+                    animate={WORD_ANIMATIONS[currentWordIndex % WORD_ANIMATIONS.length].animate}
+                    exit={WORD_ANIMATIONS[currentWordIndex % WORD_ANIMATIONS.length].exit}
+                    transition={WORD_ANIMATIONS[currentWordIndex % WORD_ANIMATIONS.length].transition}
+                    className="col-start-1 row-start-1 text-transparent bg-clip-text bg-gradient-to-r from-emerald-500 to-blue-500 origin-bottom flex items-center justify-center"
+                  >
+                    {heroWords[currentWordIndex]}
+                  </motion.span>
+                </AnimatePresence>
+              </span>
             </motion.h1>
             
-            <motion.p variants={FADE_UP} className="text-base md:text-2xl text-slate-500 font-medium max-w-2xl mx-auto leading-relaxed">
-              Payments don't have to be static transfers when you can stream value second by second, completely on-chain.
+            <motion.p variants={FADE_UP} className="text-sm md:text-xl text-slate-500 font-medium max-w-2xl mx-auto leading-relaxed">
+              Payments don't have to be static transfers. You can now stream payments second by second, completely on-chain.
             </motion.p>
             
             <motion.div variants={FADE_UP} className="pt-8 flex flex-col sm:flex-row items-center justify-center gap-4">
@@ -134,10 +182,14 @@ export default function LandingPage() {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true, margin: "-100px" }}
             transition={{ duration: 0.8, delay: 0.2 }}
-            className="mt-24 w-full max-w-4xl bg-white/40 backdrop-blur-xl border border-white/50 rounded-3xl py-6 px-4 md:px-8 shadow-2xl relative overflow-hidden"
+            className="mt-24 w-full max-w-4xl bg-white/20 backdrop-blur-[40px] backdrop-saturate-150 border border-white/40 rounded-[2.5rem] py-8 px-4 md:px-12 shadow-[0_30px_60px_-15px_rgba(0,0,0,0.1)] relative overflow-hidden ring-1 ring-white/50"
           >
-            <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent pointer-events-none" />
-            <h3 className="text-center text-sm font-bold text-slate-400 uppercase tracking-widest mb-12">The Paradigm Shift</h3>
+            {/* Liquid Reflection Effects */}
+            <div className="absolute inset-0 bg-gradient-to-br from-white/60 via-white/5 to-transparent pointer-events-none" />
+            <div className="absolute -top-24 -left-24 w-48 h-48 bg-white/40 blur-3xl rounded-full pointer-events-none" />
+            <div className="absolute -bottom-24 -right-24 w-64 h-64 bg-emerald-300/20 blur-3xl rounded-full pointer-events-none" />
+            
+            <h3 className="text-center text-sm font-bold text-slate-500 uppercase tracking-widest mb-12 relative z-10 drop-shadow-sm">The Paradigm Shift</h3>
             
             <div className="flex flex-col md:flex-row items-center justify-between gap-8 relative z-10">
               <div className="flex flex-col items-center gap-4">
@@ -339,12 +391,12 @@ export default function LandingPage() {
             </div>
             
             <div className="mt-16 text-center">
-               <Link 
-                  to="/dashboard"
-                  className="inline-flex bg-emerald-500 hover:bg-emerald-600 text-white text-lg font-bold py-4 px-8 rounded-full shadow-[0_0_20px_rgba(16,185,129,0.3)] transition-all hover:scale-105 active:scale-95 items-center justify-center gap-2"
+               <button 
+                  onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+                  className="inline-flex bg-slate-900 hover:bg-black text-white text-lg font-bold py-4 px-8 rounded-full shadow-[0_0_20px_rgba(0,0,0,0.1)] transition-all hover:scale-105 active:scale-95 items-center justify-center gap-2"
                 >
-                  Launch DApp <ArrowRight className="w-5 h-5" />
-                </Link>
+                  Back to Top <ArrowUp className="w-5 h-5" />
+                </button>
             </div>
           </div>
         </section>
