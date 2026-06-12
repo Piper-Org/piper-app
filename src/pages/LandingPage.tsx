@@ -66,6 +66,7 @@ export default function LandingPage() {
   const receiverDisplay = useTransform(count, (latest) => `${(100 - latest).toFixed(2)} USDC`);
 
   useEffect(() => {
+    count.set(100); // Explicitly reset to 100 so the loop always starts from exactly 100
     const controls = animate(count, 0, {
       duration: 100,
       ease: "linear",
@@ -126,7 +127,9 @@ export default function LandingPage() {
             piper <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
           </div>
           <a 
-            href="#"
+            href="https://www.npmjs.com/package/@usepiper/sdk?activeTab=readme"
+            target="_blank"
+            rel="noopener noreferrer"
             className="group flex items-center gap-2 bg-black hover:bg-slate-800 text-white font-semibold py-2.5 px-5 rounded-full transition-all shadow-md hover:shadow-lg"
           >
             Read Docs
