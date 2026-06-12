@@ -128,7 +128,6 @@ export default function DashboardPage() {
                       isIncoming={true}
                       totalAmount={stream.initialBalance}
                       currentBalance={liveObj?.balance ?? stream.initialBalance}
-                      flowRate={stream.flowRate}
                     />
                   );
                 })}
@@ -185,7 +184,6 @@ export default function DashboardPage() {
                       isIncoming={false}
                       totalAmount={stream.initialBalance}
                       currentBalance={liveObj?.balance ?? stream.initialBalance}
-                      flowRate={stream.flowRate}
                     />
                   );
                 })}

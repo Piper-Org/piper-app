@@ -16,7 +16,6 @@ interface StreamListRowProps {
   isIncoming: boolean;
   totalAmount: bigint;
   currentBalance: bigint;
-  flowRate: bigint;
 }
 
 export function StreamListRow({ 
@@ -27,8 +26,7 @@ export function StreamListRow({
   counterpartyAddress, 
   isIncoming,
   totalAmount,
-  currentBalance,
-  flowRate
+  currentBalance
 }: StreamListRowProps) {
   const modeData = STREAM_MODES[mode];
   const progressPercent = useRealtimeProgress(id, totalAmount, currentBalance);
