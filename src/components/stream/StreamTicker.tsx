@@ -10,6 +10,7 @@ interface StreamTickerProps {
   className?: string;
   /** Initial fallback value before the store syncs */
   fallbackBalance?: bigint;
+  showSymbol?: boolean;
 }
 
 export function StreamTicker({ 
@@ -17,7 +18,8 @@ export function StreamTicker({
   coinSymbol, 
   mode = 'remaining', 
   className,
-  fallbackBalance 
+  fallbackBalance,
+  showSymbol = true
 }: StreamTickerProps) {
   const getOptimistic = useTickerStore((s) => s.getOptimistic);
   const coin = SUPPORTED_COINS[coinSymbol];
@@ -45,7 +47,7 @@ export function StreamTicker({
         minimumFractionDigits: Math.min(4, coin.decimals),
         maximumFractionDigits: Math.min(6, coin.decimals),
       })}
-      <span className="ml-1 text-[0.8em] text-slate-500 font-sans font-medium">{coin.symbol}</span>
+      {showSymbol && <span className="ml-1 text-[0.8em] text-slate-500 font-sans font-medium">{coin.symbol}</span>}
     </span>
   );
 }

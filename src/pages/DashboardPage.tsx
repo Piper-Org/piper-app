@@ -1,14 +1,17 @@
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
+import { LayoutGrid, List } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { LoadingSpinner } from '@/components/common/LoadingSpinner';
 import { pageVariants } from '@/lib/motion';
 import { StreamCard } from '@/components/stream/StreamCard';
+import { StreamListRow } from '@/components/stream/StreamListRow';
 import { NetWorthHeader } from '@/components/stream/NetWorthHeader';
 import { useStreamsByEvent } from '@/hooks/useStreamsByEvent';
 import { useIncomingStreams } from '@/hooks/useIncomingStreams';
 import { useMultipleStreams } from '@/hooks/useMultipleStreams';
 
 export default function DashboardPage() {
+  const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const { data: sentStreamsEvent, isLoading: isLoadingSent } = useStreamsByEvent();
   const { data: incomingStreamsEvent, isLoading: isLoadingIncoming } = useIncomingStreams();
 
@@ -60,8 +63,22 @@ export default function DashboardPage() {
     <motion.div key="dashboard" variants={pageVariants} initial="initial" animate="animate" exit="exit" className="space-y-8">
       <NetWorthHeader activeIncoming={activeIncomingDetails} activeSent={activeSentDetails} />
 
-      <header>
+      <header className="flex justify-between items-center">
         <h1 className="text-2xl font-extrabold text-black tracking-tight">Overview</h1>
+        <div className="flex bg-slate-100 p-1 rounded-lg">
+          <button 
+            onClick={() => setViewMode('grid')}
+            className={`p-1.5 rounded-md transition-colors ${viewMode === 'grid' ? 'bg-white shadow-sm text-black' : 'text-slate-400 hover:text-slate-600'}`}
+          >
+            <LayoutGrid className="w-4 h-4" />
+          </button>
+          <button 
+            onClick={() => setViewMode('list')}
+            className={`p-1.5 rounded-md transition-colors ${viewMode === 'list' ? 'bg-white shadow-sm text-black' : 'text-slate-400 hover:text-slate-600'}`}
+          >
+            <List className="w-4 h-4" />
+          </button>
+        </div>
       </header>
 
       <section>
@@ -72,7 +89,7 @@ export default function DashboardPage() {
           <div className="bg-slate-50 rounded-2xl p-8 text-center border border-slate-100 md:col-span-2">
             <p className="text-slate-500 text-sm font-medium">No active incoming streams.</p>
           </div>
-        ) : (
+        ) : viewMode === 'grid' ? (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {activeIncoming.map((stream) => {
               const liveObj = liveStreams?.[stream.streamId];
@@ -93,6 +110,31 @@ export default function DashboardPage() {
               );
             })}
           </div>
+        ) : (
+          <div className="bg-white rounded-2xl shadow-elevated border border-slate-100 overflow-x-auto">
+            <table className="w-full text-left border-collapse">
+              <tbody className="divide-y divide-slate-100">
+                {activeIncoming.map((stream) => {
+                  const liveObj = liveStreams?.[stream.streamId];
+                  const coinTypeStr = liveObj?.coinType || stream.coinType || '';
+                  return (
+                    <StreamListRow
+                      key={stream.streamId}
+                      id={stream.streamId}
+                      mode={stream.flowRate > 0n ? 'continuous' : 'onDemand'}
+                      coin={coinTypeStr.toUpperCase().includes('USDC') ? 'USDC' : 'SUI'}
+                      status="active"
+                      counterpartyAddress={stream.sender}
+                      isIncoming={true}
+                      totalAmount={stream.initialBalance}
+                      currentBalance={liveObj?.balance ?? stream.initialBalance}
+                      flowRate={stream.flowRate}
+                    />
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
         )}
       </section>
 
@@ -104,7 +146,7 @@ export default function DashboardPage() {
           <div className="bg-slate-50 rounded-2xl p-8 text-center border border-slate-100 md:col-span-2">
             <p className="text-slate-500 text-sm font-medium">No active outgoing streams.</p>
           </div>
-        ) : (
+        ) : viewMode === 'grid' ? (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {activeSent.map((stream) => {
               const liveObj = liveStreams?.[stream.streamId];
@@ -124,6 +166,31 @@ export default function DashboardPage() {
                 />
               );
             })}
+          </div>
+        ) : (
+          <div className="bg-white rounded-2xl shadow-elevated border border-slate-100 overflow-x-auto">
+            <table className="w-full text-left border-collapse">
+              <tbody className="divide-y divide-slate-100">
+                {activeSent.map((stream) => {
+                  const liveObj = liveStreams?.[stream.streamId];
+                  const coinTypeStr = liveObj?.coinType || stream.coinType || '';
+                  return (
+                    <StreamListRow
+                      key={stream.streamId}
+                      id={stream.streamId}
+                      mode={stream.flowRate > 0n ? 'continuous' : 'onDemand'}
+                      coin={coinTypeStr.toUpperCase().includes('USDC') ? 'USDC' : 'SUI'}
+                      status="active"
+                      counterpartyAddress={stream.recipient}
+                      isIncoming={false}
+                      totalAmount={stream.initialBalance}
+                      currentBalance={liveObj?.balance ?? stream.initialBalance}
+                      flowRate={stream.flowRate}
+                    />
+                  );
+                })}
+              </tbody>
+            </table>
           </div>
         )}
       </section>

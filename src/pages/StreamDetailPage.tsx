@@ -24,7 +24,7 @@ import { useStreamHistory } from '@/hooks/useStreamHistory';
 import { NETWORK } from '@/lib/constants';
 
 export default function StreamDetailPage() {
-  const { id } = useParams({ from: '/stream/$id' });
+  const { id } = useParams({ from: '/_app/stream/$id' });
   const router = useRouter();
   const address = useActiveAddress();
   const { data: stream, isLoading } = useStream(id);
@@ -200,6 +200,19 @@ export default function StreamDetailPage() {
               {Number(stream.flowRate) / Math.pow(10, coinDef.decimals)} {coinDef.symbol}/s
             </span>
           </div>
+          {streamEvent?.transactionDigest && (
+            <div className="flex justify-between p-4 bg-slate-50/80 backdrop-blur-md rounded-xl border border-slate-100">
+              <span className="text-sm font-semibold text-slate-500">Initiating Tx</span>
+              <a 
+                href={`https://${NETWORK}.suivision.xyz/txblock/${streamEvent.transactionDigest}`}
+                target="_blank"
+                rel="noreferrer"
+                className="text-sm font-mono font-bold text-emerald-500 hover:text-emerald-600 underline decoration-emerald-200 underline-offset-4"
+              >
+                {formatAddress(streamEvent.transactionDigest, 8, 6)} ↗
+              </a>
+            </div>
+          )}
         </div>
 
         {status === 'active' && isContinuous && (
