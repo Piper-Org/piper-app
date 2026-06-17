@@ -1,9 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
-import { motion, useScroll, useTransform, animate, useMotionValue, AnimatePresence } from 'framer-motion';
+import { motion, useScroll, useTransform, animate, useMotionValue } from 'framer-motion';
 import { Link } from '@tanstack/react-router';
-import { ArrowRight, ArrowDown, ArrowUp, ShieldCheck, Coins, ChevronDown, Rocket, Droplets, ArrowRightLeft, MapPin, CheckCircle2, CircleDashed, Check, X } from 'lucide-react';
-import { SuiLogo } from '@/components/common/SuiLogo';
-import { UsdcLogo } from '@/components/common/UsdcLogo';
+import { ArrowDown, ArrowUp, ChevronDown, Droplets, MapPin, CheckCircle2, CircleDashed, Check, X } from 'lucide-react';
 import { WhyPiperSection } from '@/components/common/WhyPiperSection';
 import { HowItWorksSection } from '@/components/common/HowItWorksSection';
 import { KineticTicker } from '@/components/common/KineticTicker';
@@ -18,29 +16,7 @@ const STAGGER = {
   show: { opacity: 1, transition: { staggerChildren: 0.15 } }
 };
 
-const WORD_ANIMATIONS = [
-  // 0: 3D Flip
-  {
-    initial: { opacity: 0, y: 30, rotateX: -90 },
-    animate: { opacity: 1, y: 0, rotateX: 0 },
-    exit: { opacity: 0, y: -30, rotateX: 90 },
-    transition: { duration: 0.5, type: 'spring', damping: 20, stiffness: 120 }
-  },
-  // 1: Typewriter / Reveal
-  {
-    initial: { opacity: 1, clipPath: "inset(0 100% 0 0)" },
-    animate: { opacity: 1, clipPath: "inset(0 0% 0 0)" },
-    exit: { opacity: 1, clipPath: "inset(0 100% 0 0)" },
-    transition: { duration: 0.6, ease: "linear" }
-  },
-  // 2: Soft Blur Scale
-  {
-    initial: { opacity: 0, scale: 0.8, filter: "blur(8px)" },
-    animate: { opacity: 1, scale: 1, filter: "blur(0px)" },
-    exit: { opacity: 0, scale: 1.2, filter: "blur(8px)" },
-    transition: { duration: 0.5, ease: "easeInOut" }
-  }
-];
+
 
 const COMPARISON_FEATURES = [
   {
@@ -187,8 +163,6 @@ const AnimatedMobileCard = ({ row, idx }: any) => {
 };
 
 export default function LandingPage() {
-  const { scrollYProgress } = useScroll();
-  const y = useTransform(scrollYProgress, [0, 1], ['0%', '50%']);
 
   const matrixRef = useRef<HTMLElement>(null);
   const { scrollYProgress: matrixProgress } = useScroll({
@@ -268,7 +242,7 @@ export default function LandingPage() {
             </motion.h1>
             
             <motion.p variants={FADE_UP} className="text-lg md:text-xl text-transparent bg-clip-text bg-gradient-to-r from-slate-800 to-slate-600 font-medium tracking-tight max-w-2xl mx-auto leading-relaxed">
-              Experience the future of real-time payment
+              Experience the future of real-time payments
             </motion.p>
             
             <motion.div variants={FADE_UP} className="pt-8 flex flex-col items-center justify-center gap-6 relative">
