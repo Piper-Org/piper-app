@@ -1,4 +1,4 @@
-import { Link } from '@tanstack/react-router';
+import { useNavigate } from '@tanstack/react-router';
 import { motion } from 'framer-motion';
 import { StreamTicker } from './StreamTicker';
 import { StreamStatusBadge } from './StreamStatusBadge';
@@ -31,8 +31,11 @@ export function StreamListRow({
   const modeData = STREAM_MODES[mode];
   const progressPercent = useRealtimeProgress(id, totalAmount, currentBalance);
   
+  const navigate = useNavigate();
+  
   return (
     <motion.tr
+      onClick={() => navigate({ to: '/stream/$id', params: { id } })}
       whileHover={{ backgroundColor: 'rgba(248, 250, 252, 1)' }}
       className="group border-b border-slate-100 last:border-0 relative cursor-pointer bg-white transition-colors"
     >
@@ -103,12 +106,7 @@ export function StreamListRow({
             <StreamStatusBadge status={status} />
           </div>
         </div>
-        <Link 
-          to={`/stream/$id`} 
-          params={{ id }}
-          className="absolute inset-0 z-10"
-          aria-label="View stream details"
-        />
+
       </td>
     </motion.tr>
   );
