@@ -1,9 +1,12 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { motion, useScroll, useTransform, animate, useMotionValue, AnimatePresence } from 'framer-motion';
 import { Link } from '@tanstack/react-router';
-import { ArrowRight, ArrowUp, ShieldCheck, Coins, ChevronDown, Rocket, Droplets, ArrowRightLeft } from 'lucide-react';
+import { ArrowRight, ArrowUp, ShieldCheck, Coins, ChevronDown, Rocket, Droplets, ArrowRightLeft, MapPin, CheckCircle2, CircleDashed, Check, X } from 'lucide-react';
 import { SuiLogo } from '@/components/common/SuiLogo';
 import { UsdcLogo } from '@/components/common/UsdcLogo';
+import { WhyPiperSection } from '@/components/common/WhyPiperSection';
+import { HowItWorksSection } from '@/components/common/HowItWorksSection';
+import { KineticTicker } from '@/components/common/KineticTicker';
 
 const FADE_UP = {
   hidden: { opacity: 0, y: 30 },
@@ -39,9 +42,159 @@ const WORD_ANIMATIONS = [
   }
 ];
 
+const COMPARISON_FEATURES = [
+  {
+    feature: "Immediate Finality",
+    stream: { available: true, text: "Continuous finality per second" },
+    escrow: { available: false, text: "Pending until condition met" },
+    transfer: { available: true, text: "Instant finality upon receipt" }
+  },
+  {
+    feature: "Conditional Logic",
+    stream: { available: true, text: "Dynamic flow rates" },
+    escrow: { available: true, text: "Custom milestone releases" },
+    transfer: { available: false, text: "Rigid & unconditional" }
+  },
+  {
+    feature: "Payday Bottleneck",
+    stream: { available: true, text: "Usable immediately per second" },
+    escrow: { available: false, text: "Delayed until milestone" },
+    transfer: { available: false, text: "Delayed 2-4 weeks" }
+  },
+  {
+    feature: "Counterparty Risk",
+    stream: { available: true, text: "Math-enforced (stop = stop)" },
+    escrow: { available: false, text: "Trusts arbiter" },
+    transfer: { available: false, text: "Requires upfront trust" }
+  },
+  {
+    feature: "Token Vesting",
+    stream: { available: true, text: "Smooth, continuous release" },
+    escrow: { available: false, text: "Sudden cliff unlocks" },
+    transfer: { available: false, text: "Volatile manual batches" }
+  },
+  {
+    feature: "Admin Overhead",
+    stream: { available: true, text: "Fully automated" },
+    escrow: { available: false, text: "Manual verification" },
+    transfer: { available: false, text: "Heavy invoicing" }
+  },
+  {
+    feature: "Capital Efficiency",
+    stream: { available: true, text: "Instantly routable" },
+    escrow: { available: false, text: "Capital sits idle" },
+    transfer: { available: false, text: "Capital sits idle" }
+  }
+];
+
+const AnimatedTableRow = ({ row, idx, arr, scrollProgress }: any) => {
+  const xStart = idx % 2 === 0 ? -200 - (idx * 20) : 200 + (idx * 20);
+  const yStart = 150 + (idx * 30);
+  const rotateStart = idx % 2 === 0 ? -12 : 12;
+  
+  const x = useTransform(scrollProgress, [0, 1], [xStart, 0]);
+  const y = useTransform(scrollProgress, [0, 1], [yStart, 0]);
+  const rotate = useTransform(scrollProgress, [0, 1], [rotateStart, 0]);
+  const opacity = useTransform(scrollProgress, [0, 0.7, 1], [0, 0.5, 1]);
+
+  return (
+    <motion.tr 
+      style={{ x, y, rotate, opacity }}
+      className="group hover:bg-slate-50/80 transition-colors"
+    >
+      <td className="p-5 border-b border-slate-100 font-semibold text-slate-800">{row.feature}</td>
+      <td className="p-5 border-b border-slate-100">
+        <div className="flex items-start gap-3">
+          {row.transfer.available ? <Check className="w-6 h-6 text-slate-400 shrink-0" strokeWidth={3} /> : <X className="w-6 h-6 text-rose-400 shrink-0" strokeWidth={3} />}
+          <span className={row.transfer.available ? "font-medium text-slate-700" : "text-slate-500"}>{row.transfer.text}</span>
+        </div>
+      </td>
+      <td className="p-5 border-b border-slate-100">
+        <div className="flex items-start gap-3">
+          {row.escrow.available ? <Check className="w-6 h-6 text-slate-400 shrink-0" strokeWidth={3} /> : <X className="w-6 h-6 text-rose-400 shrink-0" strokeWidth={3} />}
+          <span className={row.escrow.available ? "font-medium text-slate-700" : "text-slate-500"}>{row.escrow.text}</span>
+        </div>
+      </td>
+      <td className={`p-5 border-b border-emerald-100 bg-emerald-50 ${idx === arr.length - 1 ? 'rounded-b-2xl shadow-[0_10px_40px_-15px_rgba(16,185,129,0.2)] border-b-0' : ''}`}>
+        <div className="flex items-start gap-3">
+          {row.stream.available ? <Check className="w-6 h-6 text-emerald-500 shrink-0" strokeWidth={3} /> : <X className="w-6 h-6 text-emerald-200 shrink-0" strokeWidth={3} />}
+          <span className={row.stream.available ? "font-bold text-emerald-800" : "text-emerald-600/60"}>{row.stream.text}</span>
+        </div>
+      </td>
+    </motion.tr>
+  )
+};
+
+const AnimatedMobileCard = ({ row, idx }: any) => {
+  const cardRef = useRef<HTMLDivElement>(null);
+  const { scrollYProgress } = useScroll({
+    target: cardRef,
+    offset: ["start end", "center center"]
+  });
+
+  const xStart = idx % 2 === 0 ? -100 - (idx * 15) : 100 + (idx * 15);
+  const yStart = 100 + (idx * 25);
+  const rotateStart = idx % 2 === 0 ? -8 : 8;
+  
+  const x = useTransform(scrollYProgress, [0, 1], [xStart, 0]);
+  const y = useTransform(scrollYProgress, [0, 1], [yStart, 0]);
+  const rotate = useTransform(scrollYProgress, [0, 1], [rotateStart, 0]);
+  const scale = useTransform(scrollYProgress, [0, 1], [0.8, 1]);
+  const opacity = useTransform(scrollYProgress, [0, 0.7, 1], [0.3, 0.6, 1]);
+
+  return (
+    <motion.div 
+      ref={cardRef}
+      style={{ x, y, rotate, scale, opacity }}
+      className="bg-white rounded-3xl border border-slate-100 shadow-sm overflow-hidden"
+    >
+      <div className="bg-slate-50 p-4 border-b border-slate-100">
+        <h3 className="font-bold text-slate-800 text-lg">{row.feature}</h3>
+      </div>
+      <div className="p-5 space-y-5">
+        <div className="flex flex-col gap-1.5">
+          <div className="text-xs font-bold text-slate-400 uppercase tracking-wider">
+            Static Transfers
+          </div>
+          <div className="flex items-start gap-3 p-2">
+            {row.transfer.available ? <Check className="w-5 h-5 text-slate-400 shrink-0 mt-0.5" strokeWidth={3} /> : <X className="w-5 h-5 text-rose-400 shrink-0 mt-0.5" strokeWidth={3} />}
+            <span className={row.transfer.available ? "font-medium text-slate-700 text-sm" : "text-slate-500 text-sm"}>{row.transfer.text}</span>
+          </div>
+        </div>
+
+        <div className="flex flex-col gap-1.5 border-t border-slate-100 pt-3">
+          <div className="text-xs font-bold text-slate-400 uppercase tracking-wider">
+            Smart Contract Escrow
+          </div>
+          <div className="flex items-start gap-3 p-2">
+            {row.escrow.available ? <Check className="w-5 h-5 text-slate-400 shrink-0 mt-0.5" strokeWidth={3} /> : <X className="w-5 h-5 text-rose-400 shrink-0 mt-0.5" strokeWidth={3} />}
+            <span className={row.escrow.available ? "font-medium text-slate-700 text-sm" : "text-slate-500 text-sm"}>{row.escrow.text}</span>
+          </div>
+        </div>
+
+        <div className="flex flex-col gap-1.5 pt-2">
+          <div className="text-xs font-bold text-emerald-600 uppercase tracking-wider flex items-center gap-1.5">
+            <Droplets className="w-4 h-4" /> Payment Streams
+          </div>
+          <div className="flex items-start gap-3 bg-emerald-50 p-3.5 rounded-2xl border border-emerald-100 shadow-inner">
+            {row.stream.available ? <Check className="w-5 h-5 text-emerald-500 shrink-0 mt-0.5" strokeWidth={3} /> : <X className="w-5 h-5 text-emerald-300 shrink-0 mt-0.5" strokeWidth={3} />}
+            <span className={row.stream.available ? "font-bold text-emerald-800 text-sm" : "text-emerald-700/60 text-sm font-medium"}>{row.stream.text}</span>
+          </div>
+        </div>
+      </div>
+    </motion.div>
+  );
+};
+
 export default function LandingPage() {
   const { scrollYProgress } = useScroll();
   const y = useTransform(scrollYProgress, [0, 1], ['0%', '50%']);
+
+  const matrixRef = useRef<HTMLElement>(null);
+  const { scrollYProgress: matrixProgress } = useScroll({
+    target: matrixRef,
+    offset: ["start end", "center center"]
+  });
 
   const heroWords = ["Stream.", "Alive.", "Stream.", "Flow.", "Stream.", "Alive.", "Flow."];
   const [currentWordIndex, setCurrentWordIndex] = useState(0);
@@ -77,13 +230,38 @@ export default function LandingPage() {
   }, []);
 
   return (
-    <div className="min-h-screen bg-slate-50 text-slate-900 overflow-hidden font-sans selection:bg-emerald-200">
+    <div className="min-h-screen bg-white text-slate-900 overflow-clip font-sans selection:bg-emerald-200">
       
       {/* Dynamic Background */}
       <div className="fixed inset-0 pointer-events-none z-0">
-        <motion.div style={{ y }} className="absolute inset-0 opacity-40">
-          <div className="absolute top-[-20%] left-[-10%] w-[50%] h-[50%] rounded-full bg-emerald-400 blur-[120px] mix-blend-multiply opacity-50 animate-pulse-slow" />
-          <div className="absolute bottom-[-10%] right-[-10%] w-[60%] h-[60%] rounded-full bg-blue-300 blur-[120px] mix-blend-multiply opacity-40 animate-pulse-slow" style={{ animationDelay: '2s' }} />
+        <motion.div style={{ y }} className="absolute inset-0 opacity-40 mix-blend-multiply filter blur-[100px]">
+          <motion.div 
+            animate={{ 
+              x: [0, 100, -50, 0], 
+              y: [0, -100, 50, 0],
+              scale: [1, 1.2, 0.8, 1] 
+            }}
+            transition={{ duration: 15, repeat: Infinity, ease: "easeInOut" }}
+            className="absolute top-[-10%] left-[-10%] w-[60%] h-[60%] rounded-full bg-emerald-400 opacity-60" 
+          />
+          <motion.div 
+            animate={{ 
+              x: [0, -100, 50, 0], 
+              y: [0, 100, -50, 0],
+              scale: [1, 0.9, 1.1, 1] 
+            }}
+            transition={{ duration: 18, repeat: Infinity, ease: "easeInOut", delay: 2 }}
+            className="absolute bottom-[-10%] right-[-10%] w-[70%] h-[70%] rounded-full bg-blue-300 opacity-50" 
+          />
+          <motion.div 
+            animate={{ 
+              x: [-50, 50, -50], 
+              y: [50, -50, 50],
+              scale: [0.8, 1.2, 0.8] 
+            }}
+            transition={{ duration: 12, repeat: Infinity, ease: "easeInOut", delay: 5 }}
+            className="absolute top-[30%] left-[30%] w-[40%] h-[40%] rounded-full bg-teal-200 opacity-40" 
+          />
         </motion.div>
 
         {/* Floating Background Coins */}
@@ -185,7 +363,7 @@ export default function LandingPage() {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true, margin: "-100px" }}
             transition={{ duration: 0.8, delay: 0.2 }}
-            className="mt-24 w-full max-w-4xl bg-white/20 backdrop-blur-[40px] backdrop-saturate-150 border border-white/40 rounded-[2.5rem] py-8 px-4 md:px-12 shadow-[0_30px_60px_-15px_rgba(0,0,0,0.1)] relative overflow-hidden ring-1 ring-white/50"
+            className="mt-24 md:mt-16 w-full max-w-4xl bg-white/20 backdrop-blur-[40px] backdrop-saturate-150 border border-white/40 rounded-[2.5rem] py-8 px-4 md:px-12 shadow-[0_30px_60px_-15px_rgba(0,0,0,0.1)] relative overflow-hidden ring-1 ring-white/50"
           >
             {/* Liquid Reflection Effects */}
             <div className="absolute inset-0 bg-gradient-to-br from-white/60 via-white/5 to-transparent pointer-events-none" />
@@ -273,96 +451,124 @@ export default function LandingPage() {
         </main>
 
         {/* Comparison Matrix */}
-        <section className="py-24 bg-white/60 backdrop-blur-md border-y border-slate-100">
-          <div className="max-w-5xl mx-auto px-6">
-            <div className="text-center mb-16">
-              <h2 className="text-3xl font-bold text-slate-900 mb-4">Why stream instead of transfer?</h2>
-              <p className="text-slate-500 font-medium">Compare Piper streams with traditional payment structures.</p>
+        <section ref={matrixRef} className="py-24 bg-white/60 backdrop-blur-md border-y border-slate-100">
+          <div className="max-w-6xl mx-auto px-6">
+            <div className="text-center mb-16 max-w-4xl mx-auto">
+              <h2 className="text-4xl font-bold text-slate-900 mb-6 tracking-tight">Why Stream Payments?</h2>
             </div>
 
-            <div className="overflow-x-auto">
-              <table className="w-full text-left border-collapse">
+            {/* Desktop Table */}
+            <div className="hidden md:block overflow-x-auto pb-4">
+              <table className="w-full text-left border-collapse min-w-[800px]">
                 <thead>
                   <tr>
-                    <th className="p-4 border-b border-slate-200"></th>
-                    <th className="p-4 border-b border-slate-200 font-bold text-emerald-600 bg-emerald-50/50 rounded-t-xl">
-                      <div className="flex items-center gap-2"><Droplets className="w-5 h-5"/> Piper Streams</div>
+                    <th className="p-5 border-b border-slate-200 w-1/4"></th>
+                    <th className="p-5 border-b border-slate-200 font-bold text-slate-600 text-lg w-1/4">Static Transfers</th>
+                    <th className="p-5 border-b border-slate-200 font-bold text-slate-600 text-lg w-1/4">Smart Contract Escrow</th>
+                    <th className="p-5 border-b border-emerald-200 font-bold text-emerald-700 bg-emerald-50 rounded-t-2xl shadow-[0_-10px_40px_-15px_rgba(16,185,129,0.2)] w-1/4">
+                      <div className="flex items-center gap-2 text-lg"><Droplets className="w-6 h-6"/> Payment Streams</div>
                     </th>
-                    <th className="p-4 border-b border-slate-200 font-bold text-slate-600">Smart Contract Escrow</th>
-                    <th className="p-4 border-b border-slate-200 font-bold text-slate-600">Micro-transactions</th>
                   </tr>
                 </thead>
-                <tbody className="text-sm">
-                  <tr>
-                    <td className="p-4 border-b border-slate-100 font-semibold text-slate-700">Capital Efficiency</td>
-                    <td className="p-4 border-b border-emerald-100 bg-emerald-50/50 font-medium text-emerald-700">Liquid instantly</td>
-                    <td className="p-4 border-b border-slate-100 text-slate-500">Locked until conditions met</td>
-                    <td className="p-4 border-b border-slate-100 text-slate-500">Liquid per chunk</td>
-                  </tr>
-                  <tr>
-                    <td className="p-4 border-b border-slate-100 font-semibold text-slate-700">Gas Costs</td>
-                    <td className="p-4 border-b border-emerald-100 bg-emerald-50/50 font-medium text-emerald-700">Extremely Low (1 TX to start)</td>
-                    <td className="p-4 border-b border-slate-100 text-slate-500">Medium (Multiple contract calls)</td>
-                    <td className="p-4 border-b border-slate-100 text-slate-500">Very High (Per transaction)</td>
-                  </tr>
-                  <tr>
-                    <td className="p-4 border-b border-slate-100 font-semibold text-slate-700">Trust Required</td>
-                    <td className="p-4 border-b border-emerald-100 bg-emerald-50/50 font-medium text-emerald-700">Zero (Fully on-chain & math-based)</td>
-                    <td className="p-4 border-b border-slate-100 text-slate-500">Trust the contract logic</td>
-                    <td className="p-4 border-b border-slate-100 text-slate-500">Trust the sender to keep sending</td>
-                  </tr>
-                  <tr>
-                    <td className="p-4 border-b border-slate-100 font-semibold text-slate-700">Cancellation</td>
-                    <td className="p-4 border-b border-emerald-100 bg-emerald-50/50 font-medium text-emerald-700 rounded-b-xl">Pro-rated to the exact second</td>
-                    <td className="p-4 border-b border-slate-100 text-slate-500">Often messy or binary (all/nothing)</td>
-                    <td className="p-4 border-b border-slate-100 text-slate-500">Stop sending anytime</td>
-                  </tr>
+                <tbody className="text-base">
+                  {COMPARISON_FEATURES.map((row, idx, arr) => (
+                    <AnimatedTableRow key={idx} row={row} idx={idx} arr={arr} scrollProgress={matrixProgress} />
+                  ))}
                 </tbody>
               </table>
+            </div>
+
+            {/* Mobile Cards */}
+            <div className="md:hidden space-y-6">
+              {COMPARISON_FEATURES.map((row, idx) => (
+                <AnimatedMobileCard key={idx} row={row} idx={idx} />
+              ))}
             </div>
           </div>
         </section>
 
+        {/* Kinetic Ticker */}
+        <KineticTicker />
+
+        {/* Why Piper Section */}
+        <WhyPiperSection />
+
         {/* How It Works */}
-        <section className="py-32 max-w-7xl mx-auto px-6">
-          <div className="text-center mb-16">
-            <h2 className="text-3xl font-bold text-slate-900 mb-4">How it works</h2>
-            <p className="text-slate-500 font-medium">Get started in three simple steps.</p>
-          </div>
+        <HowItWorksSection />
 
-          <div className="grid md:grid-cols-3 gap-8">
-            <motion.div 
-              whileHover={{ y: -10 }}
-              className="bg-white rounded-3xl p-8 shadow-subtle border border-slate-100"
-            >
-              <div className="w-14 h-14 bg-blue-100 text-blue-600 rounded-2xl flex items-center justify-center mb-6">
-                <Coins className="w-7 h-7" />
-              </div>
-              <h3 className="text-xl font-bold text-slate-900 mb-3">1. Define the Flow</h3>
-              <p className="text-slate-500">Select the asset (SUI or USDC), set the total amount, and choose your flow rate per second, minute, or month.</p>
-            </motion.div>
+        {/* Roadmap */}
+        <section className="py-32 bg-white relative overflow-hidden border-t border-slate-100">
+          <div className="absolute top-0 inset-x-0 h-40 bg-gradient-to-b from-white to-transparent pointer-events-none" />
+          <div className="max-w-5xl mx-auto px-6 relative z-10">
+            <div className="text-center mb-24">
+               <motion.div 
+                 initial={{ opacity: 0, y: 20 }}
+                 whileInView={{ opacity: 1, y: 0 }}
+                 viewport={{ once: true }}
+                 className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-blue-100 text-blue-700 font-bold text-sm mb-6"
+               >
+                 <MapPin className="w-4 h-4" /> The Journey Ahead
+               </motion.div>
+              <h2 className="text-4xl font-bold text-slate-900 mb-4 tracking-tight">Roadmap</h2>
+              <p className="text-slate-500 font-medium text-lg">Where we are and where Piper is going next.</p>
+            </div>
 
-            <motion.div 
-              whileHover={{ y: -10 }}
-              className="bg-white rounded-3xl p-8 shadow-subtle border border-slate-100"
-            >
-              <div className="w-14 h-14 bg-purple-100 text-purple-600 rounded-2xl flex items-center justify-center mb-6">
-                <ShieldCheck className="w-7 h-7" />
-              </div>
-              <h3 className="text-xl font-bold text-slate-900 mb-3">2. Authorize PTB</h3>
-              <p className="text-slate-500">Sign a single Programmable Transaction Block using your Web3 wallet or Enoki Google Auth. It's safe and instant.</p>
-            </motion.div>
-
-            <motion.div 
-              whileHover={{ y: -10 }}
-              className="bg-white rounded-3xl p-8 shadow-subtle border border-slate-100"
-            >
-              <div className="w-14 h-14 bg-emerald-100 text-emerald-600 rounded-2xl flex items-center justify-center mb-6">
-                <ArrowRightLeft className="w-7 h-7" />
-              </div>
-              <h3 className="text-xl font-bold text-slate-900 mb-3">3. Stream Live</h3>
-              <p className="text-slate-500">The recipient instantly starts receiving the funds. They can withdraw their unlocked balance at any time.</p>
-            </motion.div>
+            <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+              {[
+                {
+                  quarter: "Q2 2026",
+                  title: "Protocol Beta",
+                  description: "Testnet deployment of core contracts, SDK creation, and Enoki zkLogin integration.",
+                  status: "completed"
+                },
+                {
+                  quarter: "Q3 2026",
+                  title: "Mainnet V1",
+                  description: "Official launch on Sui Mainnet with stablecoin streams and public API.",
+                  status: "in-progress"
+                },
+                {
+                  quarter: "Q4 2026",
+                  title: "Ecosystem Growth",
+                  description: "Deep integrations with partner dApps, wallets, and payroll providers.",
+                  status: "upcoming"
+                },
+                {
+                  quarter: "Q1 2027",
+                  title: "Multi-Token Streams",
+                  description: "Support for streaming multiple assets in one PTB and decentralized governance.",
+                  status: "upcoming"
+                }
+              ].map((item, index) => (
+                <motion.div
+                  key={index}
+                  initial={{ opacity: 0, y: 40 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true, margin: "-50px" }}
+                  transition={{ duration: 0.5, delay: index * 0.15 }}
+                  className="bg-white rounded-3xl p-6 shadow-subtle border border-slate-100 hover:shadow-md transition-shadow relative flex flex-col h-full"
+                >
+                  <div className="flex items-center justify-between mb-4">
+                    <span className="text-sm font-bold text-slate-400 uppercase tracking-widest">{item.quarter}</span>
+                    {item.status === 'completed' && <CheckCircle2 className="w-5 h-5 text-emerald-500" />}
+                    {item.status === 'in-progress' && <div className="w-5 h-5 rounded-full border-2 border-blue-500 border-t-transparent animate-spin" />}
+                    {item.status === 'upcoming' && <CircleDashed className="w-5 h-5 text-slate-300" />}
+                  </div>
+                  <h3 className="text-xl font-bold text-slate-900 mb-3">{item.title}</h3>
+                  <p className="text-slate-500 font-medium flex-1">{item.description}</p>
+                  
+                  <div className="mt-6 pt-4 border-t border-slate-100">
+                    <span className={`text-xs font-bold uppercase tracking-wider px-3 py-1 rounded-full inline-block
+                      ${item.status === 'completed' ? 'bg-emerald-100 text-emerald-700' : 
+                        item.status === 'in-progress' ? 'bg-blue-100 text-blue-700' : 
+                        'bg-slate-100 text-slate-500'}`}
+                    >
+                      {item.status.replace('-', ' ')}
+                    </span>
+                  </div>
+                </motion.div>
+              ))}
+            </div>
           </div>
         </section>
 
