@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { motion, useScroll, useTransform, animate, useMotionValue, AnimatePresence } from 'framer-motion';
 import { Link } from '@tanstack/react-router';
-import { ArrowRight, ArrowUp, ShieldCheck, Coins, ChevronDown, Rocket, Droplets, ArrowRightLeft, MapPin, CheckCircle2, CircleDashed, Check, X } from 'lucide-react';
+import { ArrowRight, ArrowDown, ArrowUp, ShieldCheck, Coins, ChevronDown, Rocket, Droplets, ArrowRightLeft, MapPin, CheckCircle2, CircleDashed, Check, X } from 'lucide-react';
 import { SuiLogo } from '@/components/common/SuiLogo';
 import { UsdcLogo } from '@/components/common/UsdcLogo';
 import { WhyPiperSection } from '@/components/common/WhyPiperSection';
@@ -196,15 +196,6 @@ export default function LandingPage() {
     offset: ["start end", "center center"]
   });
 
-  const heroWords = ["Stream.", "Alive.", "Stream.", "Flow.", "Stream.", "Alive.", "Flow."];
-  const [currentWordIndex, setCurrentWordIndex] = useState(0);
-
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setCurrentWordIndex((prev) => (prev + 1) % heroWords.length);
-    }, 3000);
-    return () => clearInterval(interval);
-  }, []);
 
   // Enoki often forces or defaults the OAuth callback to the root origin.
   // We must catch the token here and forward it to the dashboard where WalletGate can process it.
@@ -233,127 +224,68 @@ export default function LandingPage() {
     <div className="min-h-screen bg-white text-slate-900 overflow-clip font-sans selection:bg-emerald-200">
       
       {/* Dynamic Background */}
-      <div className="fixed inset-0 pointer-events-none z-0">
-        <motion.div style={{ y }} className="absolute inset-0 opacity-40 mix-blend-multiply filter blur-[100px]">
-          <motion.div 
-            animate={{ 
-              x: [0, 100, -50, 0], 
-              y: [0, -100, 50, 0],
-              scale: [1, 1.2, 0.8, 1] 
-            }}
-            transition={{ duration: 15, repeat: Infinity, ease: "easeInOut" }}
-            className="absolute top-[-10%] left-[-10%] w-[60%] h-[60%] rounded-full bg-emerald-400 opacity-60" 
-          />
-          <motion.div 
-            animate={{ 
-              x: [0, -100, 50, 0], 
-              y: [0, 100, -50, 0],
-              scale: [1, 0.9, 1.1, 1] 
-            }}
-            transition={{ duration: 18, repeat: Infinity, ease: "easeInOut", delay: 2 }}
-            className="absolute bottom-[-10%] right-[-10%] w-[70%] h-[70%] rounded-full bg-blue-300 opacity-50" 
-          />
-          <motion.div 
-            animate={{ 
-              x: [-50, 50, -50], 
-              y: [50, -50, 50],
-              scale: [0.8, 1.2, 0.8] 
-            }}
-            transition={{ duration: 12, repeat: Infinity, ease: "easeInOut", delay: 5 }}
-            className="absolute top-[30%] left-[30%] w-[40%] h-[40%] rounded-full bg-teal-200 opacity-40" 
-          />
-        </motion.div>
+      <div className="fixed inset-0 pointer-events-none z-0 bg-slate-100">
+        <div 
+          className="absolute bottom-0 inset-x-0 w-full h-[60vh] bg-cover bg-bottom bg-no-repeat opacity-[0.25] mix-blend-luminosity [mask-image:linear-gradient(to_bottom,transparent,black_40%)]"
+          style={{ backgroundImage: "url('/suiF1.jpg')" }}
+        />
 
-        {/* Floating Background Coins */}
-        <motion.div 
-          className="absolute top-[5%] left-[-2%] opacity-[0.05] md:opacity-[0.04]"
-          animate={{ y: [0, -20, 0], rotate: [0, 10, 0] }}
-          transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
-        >
-          <SuiLogo className="w-48 h-48 md:w-80 md:h-80 text-blue-500" />
-        </motion.div>
-        
-        <motion.div 
-          className="absolute top-[65%] left-[5%] opacity-[0.05] md:opacity-[0.04]"
-          animate={{ y: [0, 20, 0], rotate: [0, -10, 0] }}
-          transition={{ duration: 7, repeat: Infinity, ease: "easeInOut", delay: 1 }}
-        >
-          <UsdcLogo className="w-32 h-32 md:w-64 md:h-64" />
-        </motion.div>
-        
-        <motion.div 
-          className="absolute top-[18%] right-[-5%] opacity-[0.05] md:opacity-[0.04]"
-          animate={{ y: [0, 30, 0], rotate: [0, -15, 0] }}
-          transition={{ duration: 8, repeat: Infinity, ease: "easeInOut", delay: 2 }}
-        >
-          <UsdcLogo className="w-56 h-56 md:w-96 md:h-96" />
-        </motion.div>
-
-        <motion.div 
-          className="absolute top-[80%] right-[10%] opacity-[0.05] md:opacity-[0.04]"
-          animate={{ y: [0, -25, 0], rotate: [0, 15, 0] }}
-          transition={{ duration: 9, repeat: Infinity, ease: "easeInOut", delay: 1.5 }}
-        >
-          <SuiLogo className="w-40 h-40 md:w-72 md:h-72 text-blue-500" />
-        </motion.div>
       </div>
 
       <div className="relative z-10">
-        {/* Navigation */}
-        <nav className="flex items-center justify-between p-6 md:px-12 max-w-7xl mx-auto">
+        
+        {/* Sticky Hero Wrapper for Desktop */}
+        <div className="md:sticky md:top-0 md:h-screen w-full flex flex-col z-0 overflow-hidden">
+          {/* Navigation */}
+          <nav className="shrink-0 flex items-center justify-between p-6 md:px-12 max-w-7xl mx-auto w-full">
           <div className="text-2xl font-bold tracking-tight text-black select-none flex items-center gap-2">
             piper <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
           </div>
-          <a 
-            href="https://www.npmjs.com/package/@usepiper/sdk?activeTab=readme"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="group flex items-center gap-2 bg-black hover:bg-slate-800 text-white font-semibold py-2.5 px-5 rounded-full transition-all shadow-md hover:shadow-lg"
-          >
-            Read Docs
-            <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-          </a>
+          <div className="flex items-center gap-3">
+            <a 
+              href="https://www.npmjs.com/package/@usepiper/sdk?activeTab=readme"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-block text-slate-500 hover:text-slate-900 font-semibold transition-colors"
+            >
+              Docs
+            </a>
+            <Link 
+              to="/dashboard"
+              className="hidden sm:flex group items-center gap-2 bg-slate-900 hover:bg-slate-800 text-white font-semibold py-2 px-6 rounded-lg transition-all shadow-sm"
+            >
+              Login
+            </Link>
+          </div>
         </nav>
 
         {/* Hero Section */}
-        <main className="pt-24 pb-32 px-6 md:px-12 max-w-7xl mx-auto flex flex-col items-center text-center">
+        <main className="flex-1 pt-12 md:pt-24 pb-32 px-6 md:px-12 max-w-7xl mx-auto flex flex-col items-center justify-center text-center w-full">
           <motion.div variants={STAGGER} initial="hidden" animate="show" className="max-w-4xl space-y-6">
-            <motion.h1 variants={FADE_UP} className="text-6xl md:text-8xl font-extrabold tracking-tight text-slate-900 leading-[1.1] flex flex-wrap items-center justify-center gap-x-4">
-              <span>Make Payments</span>
-              <span className="inline-grid relative">
-                {/* Invisible placeholder guarantees the container width matches the longest word */}
-                <span className="invisible col-start-1 row-start-1 pointer-events-none select-none" aria-hidden="true">
-                  Stream.
-                </span>
-                <AnimatePresence mode="wait">
-                  <motion.span
-                    key={`${currentWordIndex}-${heroWords[currentWordIndex]}`}
-                    initial={WORD_ANIMATIONS[currentWordIndex % WORD_ANIMATIONS.length].initial}
-                    animate={WORD_ANIMATIONS[currentWordIndex % WORD_ANIMATIONS.length].animate}
-                    exit={WORD_ANIMATIONS[currentWordIndex % WORD_ANIMATIONS.length].exit}
-                    transition={WORD_ANIMATIONS[currentWordIndex % WORD_ANIMATIONS.length].transition}
-                    className="col-start-1 row-start-1 text-transparent bg-clip-text bg-gradient-to-r from-emerald-500 to-blue-500 origin-bottom flex items-center justify-center"
-                  >
-                    {heroWords[currentWordIndex]}
-                  </motion.span>
-                </AnimatePresence>
-              </span>
+            <motion.h1 variants={FADE_UP} className="text-6xl md:text-8xl font-extrabold tracking-tight text-slate-900 leading-[1.1]">
+              Money Moving<br />
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-emerald-600">per second</span>
             </motion.h1>
             
-            <motion.p variants={FADE_UP} className="text-sm md:text-xl text-slate-500 font-medium max-w-2xl mx-auto leading-relaxed">
-              Payments don't have to be static transfers. You can now stream payments second by second, completely on-chain.
+            <motion.p variants={FADE_UP} className="text-lg md:text-xl text-transparent bg-clip-text bg-gradient-to-r from-slate-800 to-slate-600 font-medium tracking-tight max-w-2xl mx-auto leading-relaxed">
+              Experience the future of real-time payment
             </motion.p>
             
-            <motion.div variants={FADE_UP} className="pt-8 flex flex-col sm:flex-row items-center justify-center gap-4">
+            <motion.div variants={FADE_UP} className="pt-8 flex flex-col items-center justify-center gap-6 relative">
+              <motion.div 
+                animate={{ y: [0, 8, 0] }}
+                transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut" }}
+                className="text-slate-400"
+              >
+                <ArrowDown className="w-6 h-6" />
+              </motion.div>
+              
               <Link 
                 to="/dashboard"
-                className="w-full sm:w-auto bg-emerald-500 hover:bg-emerald-600 text-white text-lg font-bold py-4 px-8 rounded-full shadow-elevated transition-all hover:scale-105 active:scale-95 flex items-center justify-center gap-2"
+                className="w-auto group bg-slate-900 hover:bg-slate-800 text-white text-lg font-bold py-4 px-8 rounded-full shadow-[0_8px_30px_rgb(0,0,0,0.12)] transition-all hover:-translate-y-1 active:translate-y-0 flex items-center justify-center gap-2"
               >
-                Start Streaming <Rocket className="w-5 h-5" />
+                Start Streaming
               </Link>
-            </motion.div>
-            <motion.div variants={FADE_UP} className="mt-8 flex items-center justify-center gap-2 text-slate-400 font-medium text-sm">
-              Powered by <SuiLogo className="w-5 h-5 text-blue-500" /> <span className="text-blue-500 font-bold tracking-tight -ml-1">SUI</span>
             </motion.div>
           </motion.div>
 
@@ -363,7 +295,7 @@ export default function LandingPage() {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true, margin: "-100px" }}
             transition={{ duration: 0.8, delay: 0.2 }}
-            className="mt-24 md:mt-16 w-full max-w-4xl bg-white/20 backdrop-blur-[40px] backdrop-saturate-150 border border-white/40 rounded-[2.5rem] py-8 px-4 md:px-12 shadow-[0_30px_60px_-15px_rgba(0,0,0,0.1)] relative overflow-hidden ring-1 ring-white/50"
+            className="mt-32 md:mt-28 w-full max-w-4xl bg-white/20 backdrop-blur-[40px] backdrop-saturate-150 border border-white/40 rounded-[2.5rem] py-8 px-4 md:px-12 shadow-[0_30px_60px_-15px_rgba(0,0,0,0.1)] relative overflow-hidden ring-1 ring-white/50"
           >
             {/* Liquid Reflection Effects */}
             <div className="absolute inset-0 bg-gradient-to-br from-white/60 via-white/5 to-transparent pointer-events-none" />
@@ -388,7 +320,7 @@ export default function LandingPage() {
                 {/* Desktop Horizontal Line */}
                 <div className="hidden md:block absolute w-full h-1 bg-slate-200 rounded-full overflow-hidden">
                   <motion.div 
-                    className="h-full bg-gradient-to-r from-emerald-400 to-blue-500"
+                    className="h-full bg-emerald-500"
                     animate={{ width: ["0%", "100%"] }}
                     transition={{ duration: 100, ease: "linear", repeat: Infinity, repeatType: "loop" }}
                   />
@@ -397,7 +329,7 @@ export default function LandingPage() {
                 {/* Mobile Vertical Line */}
                 <div className="block md:hidden absolute h-28 w-1.5 bg-slate-200/60 rounded-full overflow-hidden shadow-inner">
                   <motion.div 
-                    className="w-full bg-gradient-to-b from-emerald-400 to-blue-500"
+                    className="w-full bg-emerald-500"
                     animate={{ height: ["0%", "100%"] }}
                     transition={{ duration: 100, ease: "linear", repeat: Infinity, repeatType: "loop" }}
                   />
@@ -430,29 +362,32 @@ export default function LandingPage() {
 
               <div className="flex flex-col items-center gap-4">
                 <div className="font-semibold text-slate-600 order-last md:order-first">Receiver</div>
-                <div className="w-28 h-28 rounded-2xl bg-white border-2 border-emerald-400 flex items-center justify-center shadow-elevated relative overflow-hidden p-2">
+                <div className="w-28 h-28 rounded-2xl bg-white border border-slate-200 flex items-center justify-center shadow-elevated relative overflow-hidden p-2">
                   <motion.div 
-                    className="absolute bottom-0 left-0 right-0 bg-emerald-100/50 -z-10"
+                    className="absolute bottom-0 left-0 right-0 bg-slate-100/80 -z-10"
                     animate={{ height: ["0%", "100%"] }}
                     transition={{ duration: 100, ease: "linear", repeat: Infinity, repeatType: "loop" }}
                   />
                   <div className="text-center">
                     <motion.div 
-                      className="font-bold text-emerald-600 text-sm tabular-nums"
+                      className="font-bold text-slate-900 text-sm tabular-nums"
                     >
                       {receiverDisplay}
                     </motion.div>
-                    <div className="text-[10px] text-emerald-500/80 font-semibold mt-1 leading-tight">Instantly<br/>Withdrawable</div>
+                    <div className="text-[10px] text-slate-500 font-semibold mt-1 leading-tight">Instantly<br/>Withdrawable</div>
                   </div>
                 </div>
               </div>
             </div>
           </motion.div>
         </main>
+        </div>
 
-        {/* Comparison Matrix */}
-        <section ref={matrixRef} className="py-24 bg-white/60 backdrop-blur-md border-y border-slate-100">
-          <div className="max-w-6xl mx-auto px-6">
+        {/* Content that scrolls over the static hero */}
+        <div className="relative z-10 bg-white">
+          {/* Comparison Matrix */}
+          <section ref={matrixRef} className="py-24 bg-white border-t border-slate-100 shadow-[0_-20px_40px_-15px_rgba(0,0,0,0.05)]">
+            <div className="max-w-6xl mx-auto px-6">
             <div className="text-center mb-16 max-w-4xl mx-auto">
               <h2 className="text-4xl font-bold text-slate-900 mb-6 tracking-tight">Why Stream Payments?</h2>
             </div>
@@ -609,6 +544,7 @@ export default function LandingPage() {
             </div>
           </div>
         </section>
+        </div>
       </div>
     </div>
   );
