@@ -97,10 +97,11 @@ export function HowItWorksSection() {
   const paddingLeftVW = 50 - (nodeWidthVW / 2);
   const totalTranslateVW = -(STEPS.length - 1) * nodeWidthVW;
 
-  const x = useTransform(scrollYProgress, [0, 1], ["0vw", `${totalTranslateVW}vw`]);
+  const x = useTransform(scrollYProgress, [0.17, 0.6], ["0vw", `${totalTranslateVW}vw`]);
+  const normalizedProgress = useTransform(scrollYProgress, [0.17, 0.6], [0, 1]);
 
   return (
-    <section ref={targetRef} className="relative h-[400vh] bg-white border-t border-b border-slate-100">
+    <section ref={targetRef} className="relative h-[500vh] bg-white border-t border-b border-slate-100">
       <div className="sticky top-0 h-screen flex flex-col items-start justify-center overflow-hidden">
         
         <div className="absolute top-12 md:top-24 left-6 md:left-24 z-20">
@@ -145,7 +146,7 @@ export function HowItWorksSection() {
           {/* Precision stream filling the pipe */}
           <motion.div 
             className="absolute top-0 bottom-0 left-0 bg-slate-900"
-            style={{ width: useTransform(scrollYProgress, [0, 1], ["0%", "100%"]) }}
+            style={{ width: useTransform(normalizedProgress, [0, 1], ["0%", "100%"]) }}
           />
         </div>
 
@@ -159,7 +160,7 @@ export function HowItWorksSection() {
               key={idx} 
               step={step} 
               index={idx} 
-              progress={scrollYProgress} 
+              progress={normalizedProgress} 
               totalSteps={STEPS.length} 
               isMobile={isMobile}
             />
