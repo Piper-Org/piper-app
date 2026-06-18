@@ -326,14 +326,12 @@ export default function LandingPage() {
             piper <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
           </div>
           <div className="flex items-center gap-3">
-            <a 
-              href="https://www.npmjs.com/package/@usepiper/sdk?activeTab=readme"
-              target="_blank"
-              rel="noopener noreferrer"
+            <Link 
+              to="/docs"
               className="inline-block text-slate-500 hover:text-slate-900 font-semibold transition-colors"
             >
               Docs
-            </a>
+            </Link>
             <Link 
               to="/dashboard"
               className="hidden sm:flex group items-center gap-2 bg-slate-900 hover:bg-slate-800 text-white font-semibold py-2 px-6 rounded-lg transition-all shadow-sm"
@@ -641,10 +639,10 @@ export default function LandingPage() {
                   {/* Developers */}
                   <div className="flex flex-col space-y-4">
                     <h3 className="text-lg text-slate-900 font-bold tracking-tight mb-2">Developers</h3>
-                    <a href="https://www.npmjs.com/package/@usepiper/sdk" target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-slate-500 hover:text-emerald-600 font-medium transition-colors">
+                    <Link to="/docs" className="flex items-center gap-2 text-slate-500 hover:text-emerald-600 font-medium transition-colors">
                       <svg viewBox="0 0 24 24" aria-hidden="true" className="w-4 h-4 fill-current"><path d="M2.5 0h19A2.5 2.5 0 0 1 24 2.5v19a2.5 2.5 0 0 1-2.5 2.5h-19A2.5 2.5 0 0 1 0 21.5v-19A2.5 2.5 0 0 1 2.5 0zm1.75 3v18h3.5v-1.5h1.5V18h1.5v-1.5h1.5v-1.5h1.5v1.5h1.5V18h1.5v1.5h3.5v-15H17.5v-1.5h-3v1.5h-3v-1.5h-3V3H4.25zm5 10.5v-3h1.5v3h-1.5zm6-3v3h-1.5v-3h1.5z"></path></svg>
                       Documentation
-                    </a>
+                    </Link>
                     <a href="https://www.npmjs.com/package/@usepiper/sdk" target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-slate-500 hover:text-emerald-600 font-medium transition-colors">
                       <svg viewBox="0 0 24 24" aria-hidden="true" className="w-4 h-4 fill-current"><path d="M2.5 0h19A2.5 2.5 0 0 1 24 2.5v19a2.5 2.5 0 0 1-2.5 2.5h-19A2.5 2.5 0 0 1 0 21.5v-19A2.5 2.5 0 0 1 2.5 0zm1.75 3v18h3.5v-1.5h1.5V18h1.5v-1.5h1.5v-1.5h1.5v1.5h1.5V18h1.5v1.5h3.5v-15H17.5v-1.5h-3v1.5h-3v-1.5h-3V3H4.25zm5 10.5v-3h1.5v3h-1.5zm6-3v3h-1.5v-3h1.5z"></path></svg>
                       TypeScript SDK
