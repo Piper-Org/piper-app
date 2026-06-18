@@ -87,7 +87,7 @@ export default function StreamDetailPage() {
     }
   };
 
-  const handleRevoke = async () => {
+  const handleEnd = async () => {
     try {
       const tx = new Transaction();
       const coin = Piper.revoke(tx, {
@@ -97,15 +97,14 @@ export default function StreamDetailPage() {
       tx.transferObjects([coin], address as string);
       await execute(tx);
     } catch (err) {
-      console.error('Failed to revoke stream:', err);
+      console.error('Failed to end stream:', err);
     }
   };
 
   let tickLabel = 'Sync';
-  if (isSender) tickLabel = 'Resolve';
-  else if (isIncoming) tickLabel = 'Withdraw';
+  if (isIncoming) tickLabel = 'Withdraw';
   
-  const canTick = isContinuous && (isSender || isIncoming);
+  const canTick = isContinuous && isIncoming;
 
   return (
     <motion.div key="stream-detail" variants={pageVariants} initial="initial" animate="animate" exit="exit" className="space-y-6 pb-20">
@@ -282,10 +281,10 @@ export default function StreamDetailPage() {
         {isSender && status === 'active' && (
           <button 
             disabled={isPending || isFullyUnlocked}
-            onClick={handleRevoke}
+            onClick={handleEnd}
             className="flex-1 bg-rose-50 hover:bg-rose-100 text-rose-600 font-bold py-4 rounded-xl transition-colors disabled:opacity-50 disabled:bg-slate-100 disabled:text-slate-400 text-lg"
           >
-            {isPending ? 'Revoking...' : (isFullyUnlocked ? 'Completed' : 'Revoke')}
+            {isPending ? 'Ending...' : (isFullyUnlocked ? 'Completed' : 'End')}
           </button>
         )}
 

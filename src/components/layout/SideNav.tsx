@@ -1,6 +1,7 @@
 import { Link, useRouterState } from '@tanstack/react-router';
 import { motion } from 'framer-motion';
-import { LayoutDashboard, Plus, ArrowDownToLine, History } from 'lucide-react';
+import { LayoutDashboard, Plus, ArrowDownToLine, History, LogOut } from 'lucide-react';
+import { useEnokiFlow } from '@mysten/enoki/react';
 import { cn } from '@/lib/utils';
 
 const navItems = [
@@ -12,6 +13,16 @@ const navItems = [
 
 export default function SideNav() {
   const { location } = useRouterState();
+  const enokiFlow = useEnokiFlow();
+
+  const handleLogout = async () => {
+    try {
+      await enokiFlow.logout();
+      window.location.href = '/';
+    } catch (err) {
+      console.error('Failed to logout', err);
+    }
+  };
 
   return (
     <aside className="hidden md:flex flex-col w-64 border-r border-slate-200 bg-surface-content min-h-dvh fixed top-0 left-0 z-50">
@@ -52,13 +63,20 @@ export default function SideNav() {
       </nav>
 
       <div className="p-4 border-t border-slate-200">
-        <div className="rounded-xl bg-slate-50 p-4 border border-slate-100">
+        <div className="rounded-xl bg-slate-50 p-4 border border-slate-100 mb-4">
           <p className="text-xs font-semibold text-slate-500 mb-2 uppercase tracking-wider">Network</p>
           <div className="flex items-center gap-2">
             <span className="w-2 h-2 rounded-full bg-emerald-500"></span>
             <span className="text-sm font-medium text-slate-700">Sui Testnet</span>
           </div>
         </div>
+        <button
+          onClick={handleLogout}
+          className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-500 hover:text-rose-600 hover:bg-rose-50 transition-colors font-medium text-sm"
+        >
+          <LogOut size={18} />
+          <span>Sign out</span>
+        </button>
       </div>
     </aside>
   );

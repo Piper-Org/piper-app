@@ -11,7 +11,14 @@ import { useIncomingStreams } from '@/hooks/useIncomingStreams';
 import { useMultipleStreams } from '@/hooks/useMultipleStreams';
 
 export default function DashboardPage() {
-  const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
+  const [viewMode, _setViewMode] = useState<'grid' | 'list'>(() => {
+    return (localStorage.getItem('piper_view_mode') as 'grid' | 'list') || 'grid';
+  });
+
+  const setViewMode = (mode: 'grid' | 'list') => {
+    localStorage.setItem('piper_view_mode', mode);
+    _setViewMode(mode);
+  };
   const { data: sentStreamsEvent, isLoading: isLoadingSent } = useStreamsByEvent();
   const { data: incomingStreamsEvent, isLoading: isLoadingIncoming } = useIncomingStreams();
 

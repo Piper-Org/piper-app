@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { motion, useScroll, useTransform, animate, useMotionValue } from 'framer-motion';
 import { Link } from '@tanstack/react-router';
-import { ArrowDown, ArrowUp, ChevronDown, Droplets, MapPin, Check, X } from 'lucide-react';
+import { ArrowDown, ArrowUp, ChevronDown, Droplets, MapPin, Check, X, Mail } from 'lucide-react';
 import { WhyPiperSection } from '@/components/common/WhyPiperSection';
 import { HowItWorksSection } from '@/components/common/HowItWorksSection';
 import { KineticTicker } from '@/components/common/KineticTicker';
@@ -32,13 +32,13 @@ const COMPARISON_FEATURES = [
     transfer: { available: false, text: "Rigid & unconditional" }
   },
   {
-    feature: "Payday Bottleneck",
+    feature: "No Payday Bottleneck",
     stream: { available: true, text: "Usable immediately per second" },
     escrow: { available: false, text: "Delayed until milestone" },
     transfer: { available: false, text: "Delayed 2-4 weeks" }
   },
   {
-    feature: "Counterparty Risk",
+    feature: "No Counterparty Risk",
     stream: { available: true, text: "Math-enforced (stop = stop)" },
     escrow: { available: false, text: "Trusts arbiter" },
     transfer: { available: false, text: "Requires upfront trust" }
@@ -50,7 +50,7 @@ const COMPARISON_FEATURES = [
     transfer: { available: false, text: "Volatile manual batches" }
   },
   {
-    feature: "Admin Overhead",
+    feature: "No Admin Overhead",
     stream: { available: true, text: "Fully automated" },
     escrow: { available: false, text: "Manual verification" },
     transfer: { available: false, text: "Heavy invoicing" }
@@ -226,9 +226,13 @@ function DestinationCounter() {
     offset: ["start 90%", "start 50%"]
   });
 
-  const letterSpacing = useTransform(scrollYProgress, [0, 1], ["0.15em", "-0.05em"]);
   const opacity = useTransform(scrollYProgress, [0, 1], [0, 1]);
-  const scale = useTransform(scrollYProgress, [0, 1], [1.1, 1]);
+  const scale = useTransform(scrollYProgress, [0, 1], [0.85, 1]);
+  
+  // Animate letter tracking from wide to tight
+  const letterSpacing = useTransform(scrollYProgress, [0, 1], ["0.4em", "-0.05em"]);
+  // Balance trailing letter spacing by applying the exact same margin to the left
+  const marginLeft = letterSpacing;
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -240,21 +244,23 @@ function DestinationCounter() {
   return (
     <motion.div 
       ref={containerRef}
-      style={{ opacity }}
-      className="relative mt-20 text-center z-10"
+      style={{ opacity, scale }}
+      className="relative mt-20 z-10 px-4 w-full flex justify-center"
     >
-      <div className="inline-block relative">
-        <div className="absolute inset-0 bg-emerald-400/20 blur-3xl rounded-full scale-150 -z-10" />
-        <div className="text-lg md:text-xl font-bold text-slate-400 uppercase tracking-widest mb-2 drop-shadow-sm">
+      <div className="flex flex-col items-center relative w-full max-w-full text-center">
+        <div className="absolute inset-0 bg-emerald-500/20 blur-[80px] sm:blur-3xl rounded-full scale-[2] sm:scale-150 -z-10 pointer-events-none" />
+        <div className="text-sm md:text-lg lg:text-xl font-bold text-slate-400 uppercase tracking-widest mb-2 drop-shadow-sm">
           Facilitate
         </div>
-        <motion.h3 
-          style={{ letterSpacing, scale }}
-          className="text-6xl md:text-8xl lg:text-[7rem] font-black font-mono text-emerald-500 tracking-tighter mb-4 drop-shadow-sm leading-none"
-        >
-          ${count.toLocaleString()}+
-        </motion.h3>
-        <p className="text-xl md:text-2xl text-slate-500 font-medium drop-shadow-sm">in money streamed</p>
+        <div className="flex justify-center w-full">
+          <motion.h3 
+            style={{ letterSpacing, marginLeft }}
+            className="text-[2.25rem] sm:text-6xl md:text-7xl lg:text-[7rem] font-black font-mono text-emerald-500 mb-3 md:mb-4 drop-shadow-sm leading-none"
+          >
+            ${count.toLocaleString()}+
+          </motion.h3>
+        </div>
+        <p className="text-base sm:text-xl md:text-2xl text-slate-500 font-medium drop-shadow-sm">in money streamed</p>
       </div>
     </motion.div>
   );
@@ -585,14 +591,14 @@ export default function LandingPage() {
         </section>
 
         {/* Iconic Footer */}
-        <footer className="pt-32 pb-8 bg-slate-100 text-slate-900 border-t border-slate-200 rounded-t-[3rem] relative overflow-hidden">
+        <footer className="pt-32 pb-8 bg-slate-100 text-slate-900 border-t border-slate-200 relative overflow-hidden">
           
           {/* Background Image Layer - Grayscale and blended just like hero */}
           <div 
-            className="absolute bottom-0 inset-x-0 w-full h-[80vh] md:h-[60vh] opacity-[0.25] mix-blend-luminosity pointer-events-none translate-y-[5vh] md:translate-y-[8vh] [mask-image:linear-gradient(to_bottom,transparent,black_40%)]"
+            className="absolute bottom-0 inset-x-0 w-full h-[80vh] md:h-[60vh] opacity-[0.25] mix-blend-luminosity pointer-events-none translate-y-[5vh] md:translate-y-[8vh] [mask-image:linear-gradient(to_bottom,transparent_10%,black_60%)]"
             style={{ 
               backgroundImage: "url('/suiF1.jpg')", 
-              backgroundSize: '100% auto', 
+              backgroundSize: 'cover', 
               backgroundPosition: 'center bottom',
               backgroundRepeat: 'no-repeat'
             }}
@@ -604,7 +610,6 @@ export default function LandingPage() {
               <div>
                 <div className="mb-12">
                   <h2 className="text-4xl font-bold mb-4 tracking-tight">FAQ</h2>
-                  <p className="text-slate-500 font-medium">Everything you need to know about payment streams.</p>
                 </div>
                 <div className="space-y-4">
                   <FAQItem 
@@ -612,16 +617,20 @@ export default function LandingPage() {
                     answer="A payment stream is a continuous flow of money from a sender to a receiver over time. Instead of sending a lump sum, the smart contract unlocks a micro-fraction of the total amount every second."
                   />
                   <FAQItem 
+                    question="Are there different stream types?" 
+                    answer="Yes. Piper supports Continuous Streams for use cases like salaries, subscriptions, and vesting, as well as Pay-Per-Use Streams for things like AI agents, where you can pre-authorize a budget that streams payment per-token generated."
+                  />
+                  <FAQItem 
                     question="Can I cancel a stream midway?" 
-                    answer="Yes. As a sender, you can revoke a stream at any time. The smart contract calculates the exact amount unlocked up to that second—giving it to the receiver—and refunds the remaining locked balance to you."
+                    answer="Yes. As a sender, you can end a stream at any time. Piper calculates the exact amount unlocked up to that second, giving it to the receiver, and refunds the remaining balance to you."
                   />
                   <FAQItem 
                     question="Do I need a Web3 wallet?" 
-                    answer="No! Thanks to our Enoki integration, you can simply sign in with your Google or Twitch account and start streaming immediately. We manage the wallet behind the scenes."
+                    answer="No! Thanks to our zkLogin integration, you can simply sign in with your Google account and start streaming immediately."
                   />
                   <FAQItem 
-                    question="How are gas fees handled?" 
-                    answer="You only pay a standard, tiny network gas fee once when creating the stream, and the receiver pays a small fee when withdrawing. There are no ongoing fees for the streaming process itself."
+                    question="Can devs build on piper?" 
+                    answer="Yes. We provide an SDK that lets you integrate complex streaming logic into your dapp in minutes."
                   />
                 </div>
               </div>
@@ -632,16 +641,30 @@ export default function LandingPage() {
                   {/* Developers */}
                   <div className="flex flex-col space-y-4">
                     <h3 className="text-lg text-slate-900 font-bold tracking-tight mb-2">Developers</h3>
-                    <a href="#" className="text-slate-500 hover:text-emerald-600 font-medium transition-colors">Documentation</a>
-                    <a href="#" className="text-slate-500 hover:text-emerald-600 font-medium transition-colors">TypeScript SDK</a>
-                    <a href="#" className="text-slate-500 hover:text-emerald-600 font-medium transition-colors">GitHub</a>
+                    <a href="https://www.npmjs.com/package/@usepiper/sdk" target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-slate-500 hover:text-emerald-600 font-medium transition-colors">
+                      <svg viewBox="0 0 24 24" aria-hidden="true" className="w-4 h-4 fill-current"><path d="M2.5 0h19A2.5 2.5 0 0 1 24 2.5v19a2.5 2.5 0 0 1-2.5 2.5h-19A2.5 2.5 0 0 1 0 21.5v-19A2.5 2.5 0 0 1 2.5 0zm1.75 3v18h3.5v-1.5h1.5V18h1.5v-1.5h1.5v-1.5h1.5v1.5h1.5V18h1.5v1.5h3.5v-15H17.5v-1.5h-3v1.5h-3v-1.5h-3V3H4.25zm5 10.5v-3h1.5v3h-1.5zm6-3v3h-1.5v-3h1.5z"></path></svg>
+                      Documentation
+                    </a>
+                    <a href="https://www.npmjs.com/package/@usepiper/sdk" target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-slate-500 hover:text-emerald-600 font-medium transition-colors">
+                      <svg viewBox="0 0 24 24" aria-hidden="true" className="w-4 h-4 fill-current"><path d="M2.5 0h19A2.5 2.5 0 0 1 24 2.5v19a2.5 2.5 0 0 1-2.5 2.5h-19A2.5 2.5 0 0 1 0 21.5v-19A2.5 2.5 0 0 1 2.5 0zm1.75 3v18h3.5v-1.5h1.5V18h1.5v-1.5h1.5v-1.5h1.5v1.5h1.5V18h1.5v1.5h3.5v-15H17.5v-1.5h-3v1.5h-3v-1.5h-3V3H4.25zm5 10.5v-3h1.5v3h-1.5zm6-3v3h-1.5v-3h1.5z"></path></svg>
+                      TypeScript SDK
+                    </a>
+                    {/* <a href="https://github.com/piper-org" target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-slate-500 hover:text-emerald-600 font-medium transition-colors">
+                      <svg viewBox="0 0 24 24" aria-hidden="true" className="w-4 h-4 fill-current"><path d="M12 .297c-6.63 0-12 5.373-12 12 0 5.303 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61C4.422 18.07 3.633 17.7 3.633 17.7c-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 22.092 24 17.592 24 12.297c0-6.627-5.373-12-12-12"></path></svg>
+                      GitHub
+                    </a> */}
                   </div>
                   {/* Connect */}
                   <div className="flex flex-col space-y-4">
                     <h3 className="text-lg text-slate-900 font-bold tracking-tight mb-2">Connect</h3>
-                    <a href="#" className="text-slate-500 hover:text-emerald-600 font-medium transition-colors">Twitter (X)</a>
-                    <a href="#" className="text-slate-500 hover:text-emerald-600 font-medium transition-colors">Discord</a>
-                    <a href="#" className="text-slate-500 hover:text-emerald-600 font-medium transition-colors">Blog</a>
+                    <a href="https://x.com/use_piper" target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-slate-500 hover:text-emerald-600 font-medium transition-colors">
+                      <svg viewBox="0 0 24 24" aria-hidden="true" className="w-4 h-4 fill-current"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.007 4.15H5.059z"></path></svg>
+                      @use_piper
+                    </a>
+                    <a href="mailto:usepiper@proton.me" className="flex items-center gap-2 text-slate-500 hover:text-emerald-600 font-medium transition-colors">
+                      <Mail className="w-4 h-4" />
+                      usepiper@proton.me
+                    </a>
                   </div>
                 </div>
 
