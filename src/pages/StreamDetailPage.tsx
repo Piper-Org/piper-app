@@ -105,7 +105,7 @@ export default function StreamDetailPage() {
   if (isSender) tickLabel = 'Resolve';
   else if (isIncoming) tickLabel = 'Withdraw';
   
-  const canTick = (isContinuous && (isSender || isIncoming)) || (!isContinuous && isIncoming);
+  const canTick = isContinuous && (isSender || isIncoming);
 
   return (
     <motion.div key="stream-detail" variants={pageVariants} initial="initial" animate="animate" exit="exit" className="space-y-6 pb-20">
