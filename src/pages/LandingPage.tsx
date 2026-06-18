@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { motion, useScroll, useTransform, animate, useMotionValue } from 'framer-motion';
 import { Link } from '@tanstack/react-router';
-import { ArrowDown, ArrowUp, ChevronDown, Droplets, MapPin, CheckCircle2, CircleDashed, Check, X } from 'lucide-react';
+import { ArrowDown, ArrowUp, ChevronDown, Droplets, MapPin, Check, X } from 'lucide-react';
 import { WhyPiperSection } from '@/components/common/WhyPiperSection';
 import { HowItWorksSection } from '@/components/common/HowItWorksSection';
 import { KineticTicker } from '@/components/common/KineticTicker';
@@ -162,12 +162,116 @@ const AnimatedMobileCard = ({ row, idx }: any) => {
   );
 };
 
+function RoadmapStep({ item, index }: { item: any, index: number }) {
+  const stepRef = useRef<HTMLDivElement>(null);
+  const { scrollYProgress } = useScroll({
+    target: stepRef,
+    offset: ["start 90%", "center center"]
+  });
+
+  const isEven = index % 2 === 0;
+  
+  // Scrubs from 50% away to 0 over the designated scroll window
+  const x = useTransform(scrollYProgress, [0, 1], [isEven ? '-50%' : '50%', '0%']);
+  const opacity = useTransform(scrollYProgress, [0, 1], [0, 1]);
+
+  return (
+    <motion.div 
+      ref={stepRef}
+      style={{ x, opacity }}
+      className="relative w-full max-w-2xl mx-auto py-12 flex items-center z-10"
+    >
+      {/* The Node (Map Pin) */}
+      <div
+        className="absolute z-20 flex items-center justify-center"
+        style={{ left: isEven ? '40%' : '60%', top: '50%', transform: 'translate(-50%, -100%)' }}
+      >
+        <MapPin 
+          className={`w-10 h-10 md:w-12 md:h-12 fill-[#020817] ${item.status === 'done' ? 'text-emerald-500 drop-shadow-[0_4px_12px_rgba(16,185,129,0.5)]' : (item.status === 'in progress' || item.status === 'ongoing') ? 'text-blue-500 drop-shadow-[0_4px_12px_rgba(59,130,246,0.5)] animate-pulse' : 'text-slate-600 drop-shadow-sm'}`} 
+          strokeWidth={2.5} 
+        />
+        <div className={`absolute top-[32%] w-2.5 h-2.5 md:w-3 md:h-3 rounded-full ${item.status === 'done' ? 'bg-emerald-500' : (item.status === 'in progress' || item.status === 'ongoing') ? 'bg-blue-500' : 'bg-slate-600'}`} />
+      </div>
+
+      {/* The Modern Floating Text */}
+      <div className={`w-[85%] mx-auto md:mx-0 md:w-[36%] ${isEven ? 'md:mr-auto text-center md:text-right md:pr-1' : 'md:ml-auto text-center md:text-left md:pl-1'}`}>
+        <div className={`relative z-30 flex flex-col items-center ${isEven ? 'md:items-end' : 'md:items-start'}`}>
+          {/* Modern floating glow to ensure readability over the line */}
+          <div className="absolute inset-0 bg-[#020817]/70 md:bg-transparent blur-3xl -z-10 scale-150 rounded-full pointer-events-none" />
+          
+          <div className={`flex items-center gap-3 mb-2 ${isEven ? 'md:flex-row-reverse' : 'md:flex-row'}`}>
+            <span className="text-sm font-bold text-slate-500 uppercase tracking-widest">{item.quarter}</span>
+            <span className={`text-[10px] font-bold uppercase tracking-wider px-2 py-1 rounded-md border
+              ${item.status === 'done' ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' : 
+                (item.status === 'in progress' || item.status === 'ongoing') ? 'bg-blue-500/10 text-blue-400 border-blue-500/20' : 
+                'bg-slate-800 text-slate-400 border-slate-700'}`}
+            >
+              {item.status}
+            </span>
+          </div>
+          <h3 className="text-3xl font-black text-white mb-2 tracking-tight drop-shadow-sm">{item.title}</h3>
+          <p className="text-slate-400 font-medium leading-relaxed drop-shadow-sm">{item.description}</p>
+        </div>
+      </div>
+    </motion.div>
+  );
+}
+
+function DestinationCounter() {
+  const [count, setCount] = useState(1635586943);
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  const { scrollYProgress } = useScroll({
+    target: containerRef,
+    offset: ["start 90%", "start 50%"]
+  });
+
+  const letterSpacing = useTransform(scrollYProgress, [0, 1], ["0.15em", "-0.05em"]);
+  const opacity = useTransform(scrollYProgress, [0, 1], [0, 1]);
+  const scale = useTransform(scrollYProgress, [0, 1], [1.1, 1]);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setCount(c => c + 1);
+    }, 200);
+    return () => clearInterval(interval);
+  }, []);
+
+  return (
+    <motion.div 
+      ref={containerRef}
+      style={{ opacity }}
+      className="relative mt-20 text-center z-10"
+    >
+      <div className="inline-block relative">
+        <div className="absolute inset-0 bg-emerald-400/20 blur-3xl rounded-full scale-150 -z-10" />
+        <div className="text-lg md:text-xl font-bold text-slate-400 uppercase tracking-widest mb-2 drop-shadow-sm">
+          Facilitate
+        </div>
+        <motion.h3 
+          style={{ letterSpacing, scale }}
+          className="text-6xl md:text-8xl lg:text-[7rem] font-black font-mono text-emerald-500 tracking-tighter mb-4 drop-shadow-sm leading-none"
+        >
+          ${count.toLocaleString()}+
+        </motion.h3>
+        <p className="text-xl md:text-2xl text-slate-500 font-medium drop-shadow-sm">in money streamed</p>
+      </div>
+    </motion.div>
+  );
+}
+
 export default function LandingPage() {
 
   const matrixRef = useRef<HTMLElement>(null);
   const { scrollYProgress: matrixProgress } = useScroll({
     target: matrixRef,
     offset: ["start end", "center center"]
+  });
+
+  const roadmapRef = useRef<HTMLElement>(null);
+  const { scrollYProgress: roadmapProgress } = useScroll({
+    target: roadmapRef,
+    offset: ["start center", "end center"]
   });
 
 
@@ -406,118 +510,172 @@ export default function LandingPage() {
         <HowItWorksSection />
 
         {/* Roadmap */}
-        <section className="py-32 bg-white relative overflow-hidden border-t border-slate-100">
-          <div className="absolute top-0 inset-x-0 h-40 bg-gradient-to-b from-white to-transparent pointer-events-none" />
+        <section 
+          ref={roadmapRef} 
+          className="py-32 relative overflow-hidden border-t border-slate-800 z-20 shadow-[0_-30px_50px_-15px_rgba(0,0,0,0.5)] -mt-[100vh]"
+          style={{ 
+            backgroundImage: "url('/stream-road.jpg')", 
+            backgroundSize: 'cover', 
+            backgroundPosition: 'center',
+            backgroundRepeat: 'no-repeat'
+          }}
+        >
+          {/* Image Overlay to soften the background */}
+          <div className="absolute inset-0 bg-[#020817]/90 backdrop-blur-[3px] pointer-events-none" />
+          
           <div className="max-w-5xl mx-auto px-6 relative z-10">
             <div className="text-center mb-24">
-               <motion.div 
-                 initial={{ opacity: 0, y: 20 }}
-                 whileInView={{ opacity: 1, y: 0 }}
-                 viewport={{ once: true }}
-                 className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-blue-100 text-blue-700 font-bold text-sm mb-6"
-               >
-                 <MapPin className="w-4 h-4" /> The Journey Ahead
-               </motion.div>
-              <h2 className="text-4xl font-bold text-slate-900 mb-4 tracking-tight">Roadmap</h2>
-              <p className="text-slate-500 font-medium text-lg">Where we are and where Piper is going next.</p>
+              <h2 className="text-5xl font-extrabold text-white mb-6 tracking-tight">Roadmap</h2>
             </div>
 
-            <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <div className="relative w-full max-w-5xl mx-auto h-[1250px] flex flex-col justify-around">
+              {/* Winding SVG Road Background */}
+              <div className="absolute inset-0 pointer-events-none flex justify-center">
+                <svg className="w-full max-w-2xl h-full overflow-visible" viewBox="0 0 100 100" preserveAspectRatio="none">
+                  {/* Base Track */}
+                  <path d="M 50,0 Q 40,10 50,20 T 50,40 T 50,60 T 50,80 T 50,100" fill="none" className="stroke-slate-800 stroke-[4px] md:stroke-[2px]" />
+                  {/* Animated Progress Track */}
+                  <motion.path 
+                    d="M 50,0 Q 40,10 50,20 T 50,40 T 50,60 T 50,80 T 50,100" 
+                    fill="none" className="stroke-emerald-500 stroke-[6px] md:stroke-[4px]" 
+                    style={{ pathLength: roadmapProgress }}
+                  />
+                </svg>
+              </div>
+
               {[
                 {
                   quarter: "Q2 2026",
-                  title: "Protocol Beta",
-                  description: "Testnet deployment of core contracts, SDK creation, and Enoki zkLogin integration.",
-                  status: "completed"
+                  title: "Beta",
+                  description: "Testnet deployment and v0.1.0 sdk release",
+                  status: "done"
+                },
+                {
+                  quarter: "Q2 2026",
+                  title: "Onboarding",
+                  description: "Get users and dev to test app and build with sdk",
+                  status: "ongoing"
+                },
+                {
+                  quarter: "Q2 - Q3 2026",
+                  title: "Traction",
+                  description: "Win Sui overflow 2026 and gain ecosystem traction",
+                  status: "ongoing"
                 },
                 {
                   quarter: "Q3 2026",
-                  title: "Mainnet V1",
-                  description: "Official launch on Sui Mainnet with stablecoin streams and public API.",
-                  status: "in-progress"
+                  title: "Audit",
+                  description: "Get piper packages audited by experts",
+                  status: "upcoming"
                 },
                 {
                   quarter: "Q4 2026",
-                  title: "Ecosystem Growth",
-                  description: "Deep integrations with partner dApps, wallets, and payroll providers.",
-                  status: "upcoming"
-                },
-                {
-                  quarter: "Q1 2027",
-                  title: "Multi-Token Streams",
-                  description: "Support for streaming multiple assets in one PTB and decentralized governance.",
+                  title: "Mainnet",
+                  description: "Public launch of piper on sui mainnet",
                   status: "upcoming"
                 }
               ].map((item, index) => (
-                <motion.div
-                  key={index}
-                  initial={{ opacity: 0, y: 40 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true, margin: "-50px" }}
-                  transition={{ duration: 0.5, delay: index * 0.15 }}
-                  className="bg-white rounded-3xl p-6 shadow-subtle border border-slate-100 hover:shadow-md transition-shadow relative flex flex-col h-full"
-                >
-                  <div className="flex items-center justify-between mb-4">
-                    <span className="text-sm font-bold text-slate-400 uppercase tracking-widest">{item.quarter}</span>
-                    {item.status === 'completed' && <CheckCircle2 className="w-5 h-5 text-emerald-500" />}
-                    {item.status === 'in-progress' && <div className="w-5 h-5 rounded-full border-2 border-blue-500 border-t-transparent animate-spin" />}
-                    {item.status === 'upcoming' && <CircleDashed className="w-5 h-5 text-slate-300" />}
-                  </div>
-                  <h3 className="text-xl font-bold text-slate-900 mb-3">{item.title}</h3>
-                  <p className="text-slate-500 font-medium flex-1">{item.description}</p>
-                  
-                  <div className="mt-6 pt-4 border-t border-slate-100">
-                    <span className={`text-xs font-bold uppercase tracking-wider px-3 py-1 rounded-full inline-block
-                      ${item.status === 'completed' ? 'bg-emerald-100 text-emerald-700' : 
-                        item.status === 'in-progress' ? 'bg-blue-100 text-blue-700' : 
-                        'bg-slate-100 text-slate-500'}`}
-                    >
-                      {item.status.replace('-', ' ')}
-                    </span>
-                  </div>
-                </motion.div>
+                <RoadmapStep key={index} item={item} index={index} />
               ))}
             </div>
-          </div>
-        </section>
-
-        {/* FAQs */}
-        <section className="py-24 bg-slate-900 text-white border-t border-slate-800 rounded-t-[3rem]">
-          <div className="max-w-3xl mx-auto px-6">
-            <div className="text-center mb-16">
-              <h2 className="text-3xl font-bold mb-4">Frequently Asked Questions</h2>
-              <p className="text-slate-400 font-medium">Everything you need to know about payment streams.</p>
-            </div>
-
-            <div className="space-y-4">
-              <FAQItem 
-                question="What is a payment stream?" 
-                answer="A payment stream is a continuous flow of money from a sender to a receiver over time. Instead of sending a lump sum, the smart contract unlocks a micro-fraction of the total amount every second."
-              />
-              <FAQItem 
-                question="Can I cancel a stream midway?" 
-                answer="Yes. As a sender, you can revoke a stream at any time. The smart contract calculates the exact amount unlocked up to that second—giving it to the receiver—and refunds the remaining locked balance to you."
-              />
-              <FAQItem 
-                question="Do I need a Web3 wallet?" 
-                answer="No! Thanks to our Enoki integration, you can simply sign in with your Google or Twitch account and start streaming immediately. We manage the wallet behind the scenes."
-              />
-              <FAQItem 
-                question="How are gas fees handled?" 
-                answer="You only pay a standard, tiny network gas fee once when creating the stream, and the receiver pays a small fee when withdrawing. There are no ongoing fees for the streaming process itself."
-              />
-            </div>
             
-            <div className="mt-16 text-center">
-               <button 
-                  onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
-                  className="inline-flex bg-slate-900 hover:bg-black text-white text-lg font-bold py-4 px-8 rounded-full shadow-[0_0_20px_rgba(0,0,0,0.1)] transition-all hover:scale-105 active:scale-95 items-center justify-center gap-2"
-                >
-                  Back to Top <ArrowUp className="w-5 h-5" />
-                </button>
-            </div>
+            {/* The Destination */}
+            <DestinationCounter />
           </div>
         </section>
+
+        {/* Iconic Footer */}
+        <footer className="pt-32 pb-8 bg-slate-100 text-slate-900 border-t border-slate-200 rounded-t-[3rem] relative overflow-hidden">
+          
+          {/* Background Image Layer - Grayscale and blended just like hero */}
+          <div 
+            className="absolute bottom-0 inset-x-0 w-full h-[80vh] md:h-[60vh] opacity-[0.25] mix-blend-luminosity pointer-events-none translate-y-[5vh] md:translate-y-[8vh] [mask-image:linear-gradient(to_bottom,transparent,black_40%)]"
+            style={{ 
+              backgroundImage: "url('/suiF1.jpg')", 
+              backgroundSize: '100% auto', 
+              backgroundPosition: 'center bottom',
+              backgroundRepeat: 'no-repeat'
+            }}
+          />
+
+          <div className="max-w-7xl mx-auto px-6 mb-32 relative z-10">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 lg:gap-24">
+              {/* Left Column: FAQ */}
+              <div>
+                <div className="mb-12">
+                  <h2 className="text-4xl font-bold mb-4 tracking-tight">FAQ</h2>
+                  <p className="text-slate-500 font-medium">Everything you need to know about payment streams.</p>
+                </div>
+                <div className="space-y-4">
+                  <FAQItem 
+                    question="What is a payment stream?" 
+                    answer="A payment stream is a continuous flow of money from a sender to a receiver over time. Instead of sending a lump sum, the smart contract unlocks a micro-fraction of the total amount every second."
+                  />
+                  <FAQItem 
+                    question="Can I cancel a stream midway?" 
+                    answer="Yes. As a sender, you can revoke a stream at any time. The smart contract calculates the exact amount unlocked up to that second—giving it to the receiver—and refunds the remaining locked balance to you."
+                  />
+                  <FAQItem 
+                    question="Do I need a Web3 wallet?" 
+                    answer="No! Thanks to our Enoki integration, you can simply sign in with your Google or Twitch account and start streaming immediately. We manage the wallet behind the scenes."
+                  />
+                  <FAQItem 
+                    question="How are gas fees handled?" 
+                    answer="You only pay a standard, tiny network gas fee once when creating the stream, and the receiver pays a small fee when withdrawing. There are no ongoing fees for the streaming process itself."
+                  />
+                </div>
+              </div>
+
+              {/* Right Column: Connect & Socials */}
+              <div className="flex flex-col justify-between pt-2">
+                <div className="grid grid-cols-2 gap-12">
+                  {/* Developers */}
+                  <div className="flex flex-col space-y-4">
+                    <h3 className="text-lg text-slate-900 font-bold tracking-tight mb-2">Developers</h3>
+                    <a href="#" className="text-slate-500 hover:text-emerald-600 font-medium transition-colors">Documentation</a>
+                    <a href="#" className="text-slate-500 hover:text-emerald-600 font-medium transition-colors">TypeScript SDK</a>
+                    <a href="#" className="text-slate-500 hover:text-emerald-600 font-medium transition-colors">GitHub</a>
+                  </div>
+                  {/* Connect */}
+                  <div className="flex flex-col space-y-4">
+                    <h3 className="text-lg text-slate-900 font-bold tracking-tight mb-2">Connect</h3>
+                    <a href="#" className="text-slate-500 hover:text-emerald-600 font-medium transition-colors">Twitter (X)</a>
+                    <a href="#" className="text-slate-500 hover:text-emerald-600 font-medium transition-colors">Discord</a>
+                    <a href="#" className="text-slate-500 hover:text-emerald-600 font-medium transition-colors">Blog</a>
+                  </div>
+                </div>
+
+                <div className="mt-16 pt-8 border-t border-slate-200 flex items-center justify-end">
+                  <button 
+                    onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+                    className="inline-flex bg-slate-100 hover:bg-slate-200 text-slate-900 text-sm font-bold py-3 px-6 rounded-full transition-all hover:scale-105 active:scale-95 items-center justify-center gap-2"
+                  >
+                    Back to Top <ArrowUp className="w-4 h-4" />
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Iconic Bottom Text */}
+          <div className="w-full relative z-10 pt-8 pb-4 overflow-hidden border-t border-slate-200">
+            <div className="w-full flex flex-col items-center text-center">
+              <h1 className="text-[8vw] leading-[0.8] font-black tracking-tighter select-none flex flex-col md:flex-row justify-center items-center md:items-end gap-8 md:gap-20 w-full px-4 drop-shadow-sm">
+                <div className="flex items-start pb-0 md:pb-[2vw] pt-[2vw]">
+                  <span className="text-[3.5vw] tracking-widest text-slate-900/40">
+                    money/seconds
+                  </span>
+                  <span className="text-[2vw] font-black text-slate-900/40 -mt-[0.2vw]">
+                    2
+                  </span>
+                </div>
+              </h1>
+              <p className="mt-12 text-xs md:text-sm text-slate-400 font-bold tracking-widest uppercase">
+                © 2026 Piper. All rights reserved.
+              </p>
+            </div>
+          </div>
+        </footer>
         </div>
       </div>
     </div>
@@ -528,14 +686,14 @@ function FAQItem({ question, answer }: { question: string, answer: string }) {
   const [isOpen, setIsOpen] = useState(false);
 
   return (
-    <div className="border border-slate-700/50 bg-slate-800/50 rounded-2xl overflow-hidden backdrop-blur-sm transition-colors hover:bg-slate-800">
+    <div className="border border-slate-200 bg-white/60 rounded-2xl overflow-hidden backdrop-blur-sm transition-colors hover:bg-white/90 shadow-sm">
       <button 
         onClick={() => setIsOpen(!isOpen)}
         className="w-full flex items-center justify-between p-6 text-left"
       >
-        <span className="font-semibold text-lg">{question}</span>
+        <span className="font-semibold text-lg text-slate-900">{question}</span>
         <motion.div animate={{ rotate: isOpen ? 180 : 0 }}>
-          <ChevronDown className="w-5 h-5 text-slate-400" />
+          <ChevronDown className="w-5 h-5 text-slate-500" />
         </motion.div>
       </button>
       <motion.div 
@@ -543,7 +701,7 @@ function FAQItem({ question, answer }: { question: string, answer: string }) {
         animate={{ height: isOpen ? 'auto' : 0, opacity: isOpen ? 1 : 0 }}
         className="overflow-hidden"
       >
-        <div className="p-6 pt-0 text-slate-400 leading-relaxed">
+        <div className="p-6 pt-0 text-slate-600 leading-relaxed">
           {answer}
         </div>
       </motion.div>
