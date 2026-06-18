@@ -9,6 +9,7 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as DocsRouteImport } from './routes/docs'
 import { Route as AppRouteImport } from './routes/_app'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AppReceiveRouteImport } from './routes/_app.receive'
@@ -17,6 +18,11 @@ import { Route as AppDashboardRouteImport } from './routes/_app.dashboard'
 import { Route as AppCreateRouteImport } from './routes/_app.create'
 import { Route as AppStreamIdRouteImport } from './routes/_app.stream.$id'
 
+const DocsRoute = DocsRouteImport.update({
+  id: '/docs',
+  path: '/docs',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AppRoute = AppRouteImport.update({
   id: '/_app',
   getParentRoute: () => rootRouteImport,
@@ -54,6 +60,7 @@ const AppStreamIdRoute = AppStreamIdRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/docs': typeof DocsRoute
   '/create': typeof AppCreateRoute
   '/dashboard': typeof AppDashboardRoute
   '/history': typeof AppHistoryRoute
@@ -62,6 +69,7 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/docs': typeof DocsRoute
   '/create': typeof AppCreateRoute
   '/dashboard': typeof AppDashboardRoute
   '/history': typeof AppHistoryRoute
@@ -72,6 +80,7 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/_app': typeof AppRouteWithChildren
+  '/docs': typeof DocsRoute
   '/_app/create': typeof AppCreateRoute
   '/_app/dashboard': typeof AppDashboardRoute
   '/_app/history': typeof AppHistoryRoute
@@ -82,17 +91,26 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/docs'
     | '/create'
     | '/dashboard'
     | '/history'
     | '/receive'
     | '/stream/$id'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/create' | '/dashboard' | '/history' | '/receive' | '/stream/$id'
+  to:
+    | '/'
+    | '/docs'
+    | '/create'
+    | '/dashboard'
+    | '/history'
+    | '/receive'
+    | '/stream/$id'
   id:
     | '__root__'
     | '/'
     | '/_app'
+    | '/docs'
     | '/_app/create'
     | '/_app/dashboard'
     | '/_app/history'
@@ -103,10 +121,18 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AppRoute: typeof AppRouteWithChildren
+  DocsRoute: typeof DocsRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/docs': {
+      id: '/docs'
+      path: '/docs'
+      fullPath: '/docs'
+      preLoaderRoute: typeof DocsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/_app': {
       id: '/_app'
       path: ''
@@ -180,6 +206,7 @@ const AppRouteWithChildren = AppRoute._addFileChildren(AppRouteChildren)
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AppRoute: AppRouteWithChildren,
+  DocsRoute: DocsRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
