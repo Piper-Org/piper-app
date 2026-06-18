@@ -683,10 +683,10 @@ export default function LandingPage() {
             <div className="w-full flex flex-col items-center text-center">
               <h1 className="text-[8vw] leading-[0.8] font-black tracking-tighter select-none flex flex-col md:flex-row justify-center items-center md:items-end gap-8 md:gap-20 w-full px-4 drop-shadow-sm">
                 <div className="flex items-start pb-0 md:pb-[2vw] pt-[2vw]">
-                  <span className="text-[3.5vw] tracking-widest text-slate-900/40">
+                  <span className="text-[8vw] sm:text-[5vw] md:text-[3.5vw] tracking-widest text-slate-900/40">
                     money/seconds
                   </span>
-                  <span className="text-[2vw] font-black text-slate-900/40 -mt-[0.2vw]">
+                  <span className="text-[5vw] sm:text-[3vw] md:text-[2vw] font-black text-slate-900/40 -mt-[0.8vw] sm:-mt-[0.5vw] md:-mt-[0.2vw]">
                     2
                   </span>
                 </div>
