@@ -125,7 +125,7 @@ export function NetWorthHeader({ activeIncoming, activeSent }: NetWorthHeaderPro
                 <span className="font-semibold text-slate-200">{(Number(suiBalance) / Math.pow(10, suiDecimals)).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 4 })}</span>
               </div>
               <div className="flex justify-between items-center text-xs">
-                <span className="text-slate-400">Actively Streaming</span>
+                <span className="text-slate-400">In Stream</span>
                 <span className="font-semibold text-emerald-400">{(Number(suiDynamic) / Math.pow(10, suiDecimals)).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 4 })}</span>
               </div>
             </div>
@@ -160,7 +160,7 @@ export function NetWorthHeader({ activeIncoming, activeSent }: NetWorthHeaderPro
                 <span className="font-semibold text-slate-200">{(Number(usdcBalance) / Math.pow(10, usdcDecimals)).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
               </div>
               <div className="flex justify-between items-center text-xs">
-                <span className="text-slate-400">Actively Streaming</span>
+                <span className="text-slate-400">In Stream</span>
                 <span className="font-semibold text-emerald-400">{(Number(usdcDynamic) / Math.pow(10, usdcDecimals)).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
               </div>
             </div>

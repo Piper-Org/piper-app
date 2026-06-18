@@ -3,10 +3,10 @@ import { motion, useScroll, useTransform } from 'framer-motion';
 
 const CONTENT = [
   "Piper transforms static payments into fluid, continuous streams.",
-  "Money moves like water—per second, completely on-chain, and mathematically enforced.",
+  "Money moves like water, per second, completely on-chain, and mathematically enforced.",
   "Use Continuous Streams for salaries, subscriptions, and Vesting.",
-  "Or use Pay-Per-Use Streams for AI agents—pre-authorizing a budget that streams payment per-token generated.",
-  "Built for the Web2 mind, native to Web3. The @usepiper/sdk lets you integrate complex streaming logic in minutes.",
+  "Or use Pay-Per-Use Streams for AI agents, pre-authorizing a budget that streams payment per-token generated.",
+  "Built for the Web2 mind, native to Web3. The SDK lets you integrate complex streaming logic in minutes.",
   "Because piper streams are native Sui objects, you can compose them directly into Programmable Transaction Blocks."
 ];
 function AnimatedSentence({ text, progress, start, end }: { text: string, progress: any, start: number, end: number }) {
