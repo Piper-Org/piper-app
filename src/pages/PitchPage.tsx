@@ -85,19 +85,19 @@ const SLIDES = [
           </div>
           <h2 className="text-4xl md:text-5xl font-bold text-slate-900">The Solution: Piper</h2>
         </div>
-        <p className="text-2xl font-bold text-emerald-600 mb-8">Continuous (Pay-per-second) Streaming natively on Sui</p>
+        <p className="text-2xl font-bold text-emerald-600 mb-8">Two flexible payment options natively on Sui</p>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 w-full">
           <div className="bg-white p-8 rounded-3xl shadow-sm border border-slate-100 hover:shadow-md transition-shadow">
-            <h3 className="text-xl font-bold text-slate-900 mb-3">Fluid Value</h3>
-            <p className="text-slate-600 text-lg">Instead of lump-sum upfront payments, users stream tokens <i>per second</i> for exactly the internet they consume.</p>
+            <h3 className="text-xl font-bold text-slate-900 mb-3">1. Continuous Streaming</h3>
+            <p className="text-slate-600 text-lg"><strong>Pay per second:</strong> Instead of lump-sum payments, users stream payment continuously for exactly the time they are connected. Disconnect, and payment stops instantly.</p>
           </div>
           <div className="bg-white p-8 rounded-3xl shadow-sm border border-slate-100 hover:shadow-md transition-shadow">
-            <h3 className="text-xl font-bold text-slate-900 mb-3">Total Fairness</h3>
-            <p className="text-slate-600 text-lg">Use 2 hours? Stream 2 hours worth of tokens. Disconnect, and the payment stops instantly.</p>
+            <h3 className="text-xl font-bold text-slate-900 mb-3">2. Session Budgets</h3>
+            <p className="text-slate-600 text-lg"><strong>Pay per MB used:</strong> Users pre-approve a budget for a session. They only pay for the exact data volume consumed, ensuring total fairness and control.</p>
           </div>
           <div className="bg-emerald-50 p-8 rounded-3xl shadow-inner border border-emerald-100 md:col-span-2">
             <h3 className="text-xl font-bold text-emerald-900 mb-3">Automated Revenue</h3>
-            <p className="text-emerald-800 text-lg">The ISP collects revenue in real-time without the heavy overhead of traditional micro-transaction fees.</p>
+            <p className="text-emerald-800 text-lg">ISPs no longer need to force users into rigid lump-sum payments where they might not get full value. Instead, the ISP can set a fair price to receive per second or per MB, collecting revenue automatically in real-time without the heavy overhead of traditional transactions.</p>
           </div>
         </div>
       </div>
