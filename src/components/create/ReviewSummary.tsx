@@ -45,16 +45,16 @@ export function ReviewSummary() {
         if (!activeAddress) throw new Error("Wallet not connected");
         
         // Fetch all coins of the selected type for the user
-        const coinsResult = await client.getCoins({ 
+        const coinsResult = await client.listCoins({ 
           owner: activeAddress, 
           coinType: coinDef.type 
         });
         
-        const coins = coinsResult.data;
+        const coins = coinsResult.objects;
         if (coins.length === 0) throw new Error(`No ${draft.coinSymbol} coins found in your wallet.`);
         
         // Create references to all the coin objects
-        const coinObjects = coins.map((c: any) => tx.object(c.coinObjectId));
+        const coinObjects = coins.map((c) => tx.object(c.objectId));
         const [primaryCoin, ...restCoins] = coinObjects;
         
         // Merge them all into the first coin so we have a sufficient balance
@@ -67,16 +67,18 @@ export function ReviewSummary() {
 
       let finalRecipient = draft.recipient;
       if (finalRecipient.endsWith('.sui')) {
-        const res = await client.resolveNameServiceAddress({ name: finalRecipient });
-        if (!res) throw new Error(`Could not resolve SuiNS name: ${finalRecipient}`);
-        finalRecipient = res;
+        const { response } = await client.nameService.lookupName({ name: finalRecipient });
+        const resolved = response.record?.targetAddress;
+        if (!resolved) throw new Error(`Could not resolve SuiNS name: ${finalRecipient}`);
+        finalRecipient = resolved;
       }
 
       let finalSpender = draft.authorizedSpender || draft.recipient;
       if (finalSpender.endsWith('.sui')) {
-        const res = await client.resolveNameServiceAddress({ name: finalSpender });
-        if (!res) throw new Error(`Could not resolve SuiNS name: ${finalSpender}`);
-        finalSpender = res;
+        const { response } = await client.nameService.lookupName({ name: finalSpender });
+        const resolved = response.record?.targetAddress;
+        if (!resolved) throw new Error(`Could not resolve SuiNS name: ${finalSpender}`);
+        finalSpender = resolved;
       }
 
       if (draft.mode === 'continuous') {

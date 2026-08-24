@@ -12,13 +12,13 @@ export const PIPER_PACKAGE_ID =
 
 export const NETWORK = (import.meta.env.VITE_NETWORK ?? 'testnet') as 'testnet' | 'mainnet';
 
-// ── Sui RPC endpoints ─────────────────────────────────────────────────────────
+// ── Sui gRPC & GraphQL endpoints ─────────────────────────────────────────────
 
-export const SUI_RPC_URL =
-  import.meta.env.VITE_SUI_RPC_URL ?? 'https://fullnode.testnet.sui.io:443';
+export const SUI_GRPC_URL =
+  import.meta.env.VITE_SUI_GRPC_URL ?? 'https://fullnode.testnet.sui.io:443';
 
-export const SUI_WS_URL =
-  import.meta.env.VITE_SUI_WS_URL ?? 'wss://fullnode.testnet.sui.io:443';
+export const SUI_GRAPHQL_URL =
+  import.meta.env.VITE_SUI_GRAPHQL_URL ?? 'https://graphql.testnet.sui.io/graphql';
 
 // ── zkLogin / Enoki ───────────────────────────────────────────────────────────
 

@@ -20,8 +20,8 @@ export function RecipientInput() {
     queryKey: ['suins', inputValue],
     enabled: inputValue.endsWith('.sui'),
     queryFn: async () => {
-      const res = await client.resolveNameServiceAddress({ name: inputValue });
-      return res;
+      const { response } = await client.nameService.lookupName({ name: inputValue });
+      return response.record?.targetAddress ?? null;
     }
   });
 

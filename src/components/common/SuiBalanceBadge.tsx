@@ -20,7 +20,8 @@ export function SuiBalanceBadge({ address }: SuiBalanceBadgeProps) {
     );
   }
 
-  const balance = Number(data.totalBalance) / 1e9;
+  const rawBalance = data.balance?.balance ?? (data as any).totalBalance ?? '0';
+  const balance = Number(rawBalance) / 1e9;
 
   return (
     <div className="flex items-center bg-white border border-slate-200 px-3 py-1.5 rounded-lg shadow-subtle">

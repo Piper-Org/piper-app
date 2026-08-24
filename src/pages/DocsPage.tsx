@@ -267,19 +267,22 @@ tx.transferObjects([remainingCoin], tx.pure.address('0xYourAddress'));`}
         </p>
         <CodeBlock
           language="typescript"
-          code={`import { SuiClient, getFullnodeUrl } from '@mysten/sui/client';
+          code={`import { SuiGrpcClient } from '@mysten/sui/grpc';
 
-const client = new SuiClient({ url: getFullnodeUrl('testnet') });
+const client = new SuiGrpcClient({
+    network: 'testnet',
+    baseUrl: 'https://fullnode.testnet.sui.io:443',
+});
 
 // Fetch the Stream object from the blockchain
 const streamObject = await client.getObject({
-    id: '0xStreamObjectId',
-    options: { showContent: true }
+    objectId: '0xStreamObjectId',
+    include: { json: true }
 });
 
-if (streamObject.data?.content?.dataType === 'moveObject') {
+if (streamObject.object?.json) {
     // Access the splits array from the on-chain object
-    const fields = streamObject.data.content.fields as any;
+    const fields = streamObject.object.json as any;
     const splits = fields.splits || [];
 
     splits.forEach((split: any, index: number) => {

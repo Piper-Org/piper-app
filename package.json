@@ -15,7 +15,7 @@
     "@mysten/sui": "latest",
     "@tanstack/react-query": "^5.0.0",
     "@tanstack/react-router": "^1.0.0",
-    "@usepiper/sdk": "^0.1.0",
+    "@usepiper/sdk": "file:../piper-sdk",
     "@yudiel/react-qr-scanner": "^2.6.0",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
@@ -33,6 +33,7 @@
   "devDependencies": {
     "@tailwindcss/vite": "^4.0.0",
     "@tanstack/router-plugin": "^1.168.14",
+    "@types/node": "^26.3.0",
     "@types/react": "^18.3.12",
     "@types/react-dom": "^18.3.1",
     "@types/react-syntax-highlighter": "^15.5.13",

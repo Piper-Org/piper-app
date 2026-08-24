@@ -1,25 +1,19 @@
 /**
- * useStreamSubscription — WebSocket event subscription for a single stream.
+ * useStreamSubscription — Real-time event & state sync for a single stream.
  *
- * Subscribes to sui_subscribeEvent filtered by stream_id.
- * On any event → invalidates TanStack Query cache (never writes directly).
- *
- * WebSocket is an accelerator on top of polling — not a replacement.
- * Falls back silently to polling-only after 3 failed reconnect attempts.
- *
- * Reconnect backoff: 3s → 6s → 12s
+ * Uses Sui gRPC SubscriptionService (subscribeCheckpoints) to detect new
+ * on-chain activity and invalidate TanStack Query cache.
+ * Falls back silently to polling if streaming is unavailable.
  */
 
-import { useEffect, useRef, useCallback } from 'react';
+import { useEffect, useCallback } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
-import { SUI_WS_URL, WS_RECONNECT_DELAYS, PIPER_PACKAGE_ID } from '@/lib/constants';
+import { useCurrentClient } from '@mysten/dapp-kit-react';
 import { streamKeys } from '@/lib/queryKeys';
 
 export function useStreamSubscription(streamId: string | undefined) {
   const queryClient = useQueryClient();
-  const wsRef = useRef<WebSocket | null>(null);
-  const retriesRef = useRef(0);
-  const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const client = useCurrentClient();
 
   const invalidate = useCallback(() => {
     if (!streamId) return;
@@ -28,84 +22,36 @@ export function useStreamSubscription(streamId: string | undefined) {
     queryClient.invalidateQueries({ queryKey: streamKeys.all() });
   }, [queryClient, streamId]);
 
-  const connect = useCallback(() => {
-    if (!streamId) return;
-    if (retriesRef.current >= WS_RECONNECT_DELAYS.length) {
-      // Exhausted retries — silently fall back to polling
-      return;
-    }
+  useEffect(() => {
+    if (!streamId || !client?.subscriptionService) return;
 
-    const ws = new WebSocket(SUI_WS_URL);
-    wsRef.current = ws;
+    const controller = new AbortController();
+    let isCancelled = false;
 
-    ws.onopen = () => {
-      retriesRef.current = 0;
-
-      // Subscribe to all Piper events for this stream
-      ws.send(
-        JSON.stringify({
-          jsonrpc: '2.0',
-          id: 1,
-          method: 'suix_subscribeEvent',
-          params: [
-            {
-              And: [
-                {
-                  MoveEventModule: {
-                    package: PIPER_PACKAGE_ID,
-                    module: 'events',
-                  },
-                },
-                {
-                  MoveEventField: {
-                    path: '/stream_id',
-                    value: streamId,
-                  },
-                },
-              ],
-            },
-          ],
-        }),
-      );
-    };
-
-    ws.onmessage = (evt) => {
+    async function startSubscription() {
       try {
-        const msg = JSON.parse(evt.data as string);
-        // Subscription confirmation — no action needed
-        if (msg.id === 1) return;
-        // Event notification
-        if (msg.params?.result) {
+        const stream = client.subscriptionService.subscribeCheckpoints(
+          {},
+          { abort: controller.signal },
+        );
+
+        for await (const _ of stream.responses) {
+          if (isCancelled) break;
           invalidate();
         }
-      } catch {
-        // Malformed message — ignore
+      } catch (err: any) {
+        if (!isCancelled && err?.name !== 'AbortError') {
+          console.debug('gRPC subscription stream closed, relying on interval polling');
+        }
       }
-    };
+    }
 
-    ws.onerror = () => {
-      ws.close();
-    };
-
-    ws.onclose = () => {
-      wsRef.current = null;
-      const delay = WS_RECONNECT_DELAYS[retriesRef.current] ?? null;
-      if (delay !== null) {
-        retriesRef.current++;
-        timeoutRef.current = setTimeout(connect, delay);
-      }
-    };
-  }, [streamId, invalidate]);
-
-  useEffect(() => {
-    if (!streamId) return;
-    connect();
+    startSubscription();
 
     return () => {
-      if (timeoutRef.current) clearTimeout(timeoutRef.current);
-      wsRef.current?.close();
-      wsRef.current = null;
-      retriesRef.current = 0;
+      isCancelled = true;
+      controller.abort();
     };
-  }, [streamId, connect]);
+  }, [streamId, client, invalidate]);
 }
+

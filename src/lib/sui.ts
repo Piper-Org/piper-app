@@ -7,22 +7,47 @@
  */
 
 import { createDAppKit } from '@mysten/dapp-kit-react';
-import { SuiJsonRpcClient, getJsonRpcFullnodeUrl } from '@mysten/sui/jsonRpc';
+import { SuiGrpcClient } from '@mysten/sui/grpc';
+import { SuiGraphQLClient } from '@mysten/sui/graphql';
 import { Piper } from '@usepiper/sdk';
-import { PIPER_PACKAGE_ID, SUI_RPC_URL } from './constants';
+import { PIPER_PACKAGE_ID, SUI_GRPC_URL, SUI_GRAPHQL_URL, NETWORK } from './constants';
 
-// ── dApp Kit instance ─────────────────────────────────────────────────────────
+// ── Shared GraphQL Client ─────────────────────────────────────────────────────
+
+export const GRPC_URLS = {
+  testnet: SUI_GRPC_URL,
+  mainnet: 'https://fullnode.mainnet.sui.io:443',
+} as const;
+
+export const GRAPHQL_URLS = {
+  testnet: SUI_GRAPHQL_URL,
+  mainnet: 'https://graphql.mainnet.sui.io/graphql',
+} as const;
+
+export const suiGraphQLClient = new SuiGraphQLClient({
+  url: GRAPHQL_URLS[NETWORK] ?? GRAPHQL_URLS.testnet,
+  network: NETWORK,
+});
+
+export function getGraphQLClient(network: 'testnet' | 'mainnet' = NETWORK) {
+  return new SuiGraphQLClient({
+    url: GRAPHQL_URLS[network] ?? GRAPHQL_URLS.testnet,
+    network,
+  });
+}
+
+// ── dApp Kit instance with SuiGrpcClient ──────────────────────────────────────
 
 export const dAppKit = createDAppKit({
   networks: ['testnet', 'mainnet'],
   createClient: (network) => {
-    const url =
+    const baseUrl =
       network === 'mainnet'
-        ? getJsonRpcFullnodeUrl('mainnet')
-        : SUI_RPC_URL;
-    return new SuiJsonRpcClient({ url, network: network as any });
+        ? GRPC_URLS.mainnet
+        : GRPC_URLS.testnet;
+    return new SuiGrpcClient({ baseUrl, network });
   },
-  defaultNetwork: 'testnet',
+  defaultNetwork: NETWORK,
 });
 
 // ── TypeScript augmentation — typed hooks ─────────────────────────────────────

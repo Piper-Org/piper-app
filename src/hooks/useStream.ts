@@ -35,15 +35,15 @@ export function useStream(streamId: string | undefined) {
       if (!streamId) return null;
 
       const obj = await client.getObject({
-        id: streamId,
-        options: { showContent: true, showType: true },
+        objectId: streamId,
+        include: { json: true },
       });
 
-      if (!obj.data?.content || obj.data.content.dataType !== 'moveObject') {
+      if (!obj.object?.json) {
         return null;
       }
 
-      const fields = obj.data.content.fields as Record<string, unknown>;
+      const fields = obj.object.json as Record<string, unknown>;
 
       const result = {
         id: streamId,
@@ -51,7 +51,7 @@ export function useStream(streamId: string | undefined) {
         flowRate: BigInt((fields.flow_rate as string | number | bigint) ?? '0'),
         recipient: String(fields.recipient ?? ''),
         sender: String(fields.sender ?? ''),
-        coinType: obj.data.type?.match(/<(.+)>/)?.[1] ?? '',
+        coinType: obj.object.type?.match(/<(.+)>/)?.[1] ?? '',
         createdAt: Number(fields.created_at ?? 0),
         lastTick: Number(fields.last_tick_at ?? 0),
         isRevoked: !(Boolean(fields.is_active ?? true)),

@@ -1,5 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import { useCurrentClient } from '@mysten/dapp-kit-react';
+import { suiGraphQLClient } from '@/lib/sui';
 
 export function useStreamHistory(streamId: string | undefined, enabled: boolean, isExplicitlyRevoked: boolean = false) {
   const client = useCurrentClient();
@@ -11,56 +12,121 @@ export function useStreamHistory(streamId: string | undefined, enabled: boolean,
     retryDelay: 2000,
     queryFn: async () => {
       if (!streamId) return null;
-      
-      // 1. Get the object's previousTransaction to find exactly what last mutated it.
-      // This bypasses the notoriously slow ChangedObject transaction indexer on Sui Testnet.
-      const objResult = await client.getObject({
-        id: streamId,
-        options: { showPreviousTransaction: true }
-      });
 
-      const previousTxDigest = objResult.data?.previousTransaction;
-      if (!previousTxDigest) return null;
+      try {
+        // 1. Try GraphQL query for object's previous transaction, timestamp, and events
+        const gqlRes = await suiGraphQLClient.query<{
+          object: {
+            previousTransaction?: {
+              digest: string;
+              effects?: {
+                timestamp?: string;
+                events?: {
+                  nodes: Array<{
+                    contents?: {
+                      json?: Record<string, unknown>;
+                      type?: { repr?: string };
+                    };
+                  }>;
+                };
+              };
+            };
+          };
+        }>({
+          query: `
+            query GetStreamHistory($id: SuiAddress!) {
+              object(address: $id) {
+                previousTransaction {
+                  digest
+                  effects {
+                    timestamp
+                    events {
+                      nodes {
+                        contents {
+                          json
+                          type {
+                            repr
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          `,
+          variables: { id: streamId },
+        });
 
-      // 2. Fetch the specific closing transaction, and the creation transaction.
-      const [closingTxResult, creationTxResult] = await Promise.allSettled([
-        client.getTransactionBlock({
-          digest: previousTxDigest,
-          options: { showEvents: true }
-        }),
-        client.queryTransactionBlocks({
-          filter: { ChangedObject: streamId },
-          options: { showEvents: true },
-          order: 'ascending',
-          limit: 1,
-        })
-      ]);
+        const prevTx = gqlRes.data?.object?.previousTransaction;
+        if (prevTx) {
+          const events = prevTx.effects?.events?.nodes ?? [];
+          const revokedEvent = events.find((e) =>
+            e.contents?.type?.repr?.includes('::events::StreamRevoked'),
+          );
 
-      const tx = closingTxResult.status === 'fulfilled' ? closingTxResult.value : null;
+          let remainingAtClosure = 0n;
+          if (revokedEvent?.contents?.json) {
+            remainingAtClosure = BigInt(
+              (revokedEvent.contents.json as any).remaining_balance ?? 0,
+            );
+          }
 
-      const revokedEvent = tx?.events?.find(e => e.type.includes('::events::StreamRevoked'));
-      
-      let remainingAtClosure = 0n;
-      if (revokedEvent) {
-        remainingAtClosure = BigInt((revokedEvent.parsedJson as any)?.remaining_balance ?? 0);
-      }
+          const timestampMs = prevTx.effects?.timestamp
+            ? new Date(prevTx.effects.timestamp).getTime()
+            : undefined;
 
-      // 3. Fallback for creationEvent
-      let historicalInitialBalance = 0n;
-      if (creationTxResult.status === 'fulfilled' && creationTxResult.value.data.length > 0) {
-        const creationTx = creationTxResult.value.data[0];
-        const createdEvent = creationTx.events?.find(e => e.type.includes('::events::StreamCreated'));
-        if (createdEvent) {
-          historicalInitialBalance = BigInt((createdEvent.parsedJson as any)?.initial_balance ?? 0);
+          return {
+            digest: prevTx.digest,
+            timestampMs,
+            remainingAtClosure,
+            historicalInitialBalance: 0n,
+          };
         }
+      } catch (gqlErr) {
+        console.warn('GraphQL streamHistory fetch failed, falling back to gRPC:', gqlErr);
       }
 
-      return {
-        digest: tx?.digest ?? previousTxDigest,
-        timestampMs: tx?.timestampMs,
-        remainingAtClosure,
-        historicalInitialBalance,
-      };
+      // 2. Fallback to gRPC: Get previousTransaction via getObject
+      try {
+        const objResult = await client.getObject({
+          objectId: streamId,
+          include: { previousTransaction: true },
+        });
+
+        const previousTxDigest = objResult.object?.previousTransaction;
+        if (!previousTxDigest) return null;
+
+        const txResult = await client.getTransaction({
+          digest: previousTxDigest,
+          include: { events: true, effects: true },
+        });
+
+        if (txResult.$kind === 'Transaction') {
+          const tx = txResult.Transaction;
+          const revokedEvent = tx.events?.find((e) =>
+            e.eventType.includes('::events::StreamRevoked'),
+          );
+
+          let remainingAtClosure = 0n;
+          if (revokedEvent?.json) {
+            remainingAtClosure = BigInt(
+              (revokedEvent.json as any).remaining_balance ?? 0,
+            );
+          }
+
+          return {
+            digest: previousTxDigest,
+            timestampMs: undefined,
+            remainingAtClosure,
+            historicalInitialBalance: 0n,
+          };
+        }
+      } catch (grpcErr) {
+        console.error('gRPC streamHistory fallback error:', grpcErr);
+      }
+
+      return null;
     },
   });
 }

@@ -13,8 +13,8 @@ export function useWalletBalances() {
     enabled: !!address,
     queryFn: async () => {
       if (!address) return 0n;
-      const res = await client.getBalance({ owner: address });
-      return BigInt(res.totalBalance);
+      const res = await client.getBalance({ owner: address, coinType: SUPPORTED_COINS.SUI.type });
+      return BigInt(res.balance?.balance ?? (res as any).totalBalance ?? '0');
     },
     refetchInterval: 10000,
   });
@@ -29,7 +29,7 @@ export function useWalletBalances() {
         owner: address,
         coinType: SUPPORTED_COINS.USDC.type
       });
-      return BigInt(res.totalBalance);
+      return BigInt(res.balance?.balance ?? (res as any).totalBalance ?? '0');
     },
     refetchInterval: 10000,
   });

@@ -3,16 +3,15 @@
  */
 
 import { useQuery } from '@tanstack/react-query';
-import { useCurrentClient } from '@mysten/dapp-kit-react';
 import { normalizeSuiAddress } from '@mysten/sui/utils';
 import { POLL_INTERVAL_MS, PIPER_PACKAGE_ID } from '@/lib/constants';
 import { streamKeys } from '@/lib/queryKeys';
+import { suiGraphQLClient } from '@/lib/sui';
 import type { StreamSummary } from './useStreamsByEvent';
 import { useActiveAddress } from './useActiveAddress';
 
 export function useIncomingStreams() {
   const address = useActiveAddress();
-  const client = useCurrentClient();
 
   return useQuery({
     queryKey: streamKeys.incoming(address ?? ''),
@@ -23,33 +22,65 @@ export function useIncomingStreams() {
     queryFn: async (): Promise<StreamSummary[]> => {
       if (!address) return [];
 
-      const events = await client.queryEvents({
-        query: {
-          MoveEventType: `${PIPER_PACKAGE_ID}::events::StreamCreated`,
+      const res = await suiGraphQLClient.query<{
+        events?: {
+          nodes: Array<{
+            timestamp?: string;
+            contents?: {
+              json?: Record<string, unknown>;
+              type?: { repr?: string };
+            };
+            transaction?: {
+              digest?: string;
+            };
+          }>;
+        };
+      }>({
+        query: `
+          query GetIncomingStreamCreatedEvents($type: String!) {
+            events(first: 50, filter: { type: $type }) {
+              nodes {
+                timestamp
+                contents {
+                  json
+                  type {
+                    repr
+                  }
+                }
+                transaction {
+                  digest
+                }
+              }
+            }
+          }
+        `,
+        variables: {
+          type: `${PIPER_PACKAGE_ID}::events::StreamCreated`,
         },
-        limit: 50,
-        order: 'descending',
       });
 
-      const normalizedAccount = normalizeSuiAddress(address);
+      const normalizedAccount = normalizeSuiAddress(address).toLowerCase();
+      const nodes = res.data?.events?.nodes ?? [];
 
-      return events.data
+      return nodes
         .filter((e) => {
-          const fields = e.parsedJson as Record<string, string> | undefined;
+          const fields = e.contents?.json as Record<string, string> | undefined;
           if (!fields?.recipient) return false;
-          return normalizeSuiAddress(fields.recipient).toLowerCase() === normalizedAccount.toLowerCase();
+          return normalizeSuiAddress(fields.recipient).toLowerCase() === normalizedAccount;
         })
         .map((e) => {
-          const fields = e.parsedJson as Record<string, string>;
+          const fields = e.contents?.json as Record<string, string>;
+          const typeStr = e.contents?.type?.repr ?? '';
+          const createdAt = e.timestamp ? new Date(e.timestamp).getTime() : 0;
           return {
             streamId: fields.stream_id,
             sender: normalizeSuiAddress(fields.sender),
             recipient: normalizeSuiAddress(fields.recipient),
             flowRate: BigInt(fields.flow_rate ?? '0'),
             initialBalance: BigInt(fields.initial_balance ?? '0'),
-            coinType: e.type.match(/<(.+)>/)?.[1] ?? '',
-            createdAt: Number(e.timestampMs ?? 0),
-            transactionDigest: e.id.txDigest,
+            coinType: typeStr.match(/<(.+)>/)?.[1] ?? '',
+            createdAt,
+            transactionDigest: e.transaction?.digest ?? '',
           };
         });
     },
